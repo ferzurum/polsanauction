@@ -1,0 +1,87 @@
+# Spec 0001 — Proje iskeleti
+<!-- Small behavior changes use TEMPLATE-mini.md — brevity is sanctioned, discipline is not. -->
+
+- Status: In progress
+- Mode: lite
+- Plan: `specs/plans/0001-plan.md`
+
+## Intent
+Geliştirici (tek kişilik ekip), ilk iş özelliğine başlamadan önce bootstrap'ta kararlaştırılan
+mimariyi çalışır hâlde görmek istiyor: .NET 10 backend, modül sınırları, React web arayüzü,
+PostgreSQL ve hepsini tek komutla doğrulayan `scripts/check`. Başarı: `./scripts/check` gerçek
+adımlarla (derleme, format, birim/mimari/entegrasyon testleri, web lint/tip/test/derleme, güvenlik
+taraması) yeşil döner, geride hiçbir süreç bırakmaz ve modül sınırları testle korunur. Kullanıcıya
+dönük tek davranış, uygulamanın ve veritabanının ayakta olup olmadığını gösteren bir sistem durumu
+kontrolüdür. Hiçbir iş özelliği (ürün, ihale, teklif, giriş/kayıt) bu spec'te yapılmaz.
+
+## Requirements
+- R-1: Backend, `docs/architecture.md`'deki beş modülün (Catalog, Auction, Identity, Notification,
+  Audit) her biri için Domain / Application / Infrastructure katmanlarını ve tek bir uygulama
+  barındırıcısını (host) içerir — 15 katman projesinin hepsi şimdi oluşturulur. Modüller bu
+  spec'te iş davranışı içermez.
+- R-2: Sistem bir **durum kontrolü** sunar: uygulama ve veritabanı erişilebilirse "sağlıklı",
+  veritabanına erişilemiyorsa "sağlıksız" der. Yanıt makine okunur bir durum değeridir ve iç ayrıntı (bağlantı dizesi, hata metni,
+  stack trace) içermez. Durum kontrolü kimlik doğrulama gerektirmez (`docs/security.md`'de açıkça
+  anonim işaretlenir).
+- R-3: Web arayüzü Türkçe bir ana sayfa gösterir: uygulama adı ("Polsan Auction") ve sistem
+  durumu (yükleniyor / sağlıklı / sağlıksız-hata).
+- R-4: `docs/architecture.md` "Forbidden dependencies" maddeleri 1–3, 5 ve 6 otomatik mimari
+  testlerle korunur; bir ihlal eklendiğinde test kırmızıya düşer. (Madde 4 — denetim tablosu — ve
+  7 — harici CDN — ilgili özelliklerle gelir.)
+- R-5: `scripts/check.conf` adımları etkinleştirilir; full ve `--fast` profilleri gerçek
+  adımlarla çalışır, test adımları seçiciyle (Category) bölünür.
+- R-6: Check hiçbir süreç ve veri bırakmaz (`docs/testing.md`, Resource hygiene); residue testi
+  her iki profilde temizdir.
+- R-7: CI tanımı (`.github/workflows/check.yml`) check'in full profilini çalıştırabilecek
+  araçları (.NET 10 SDK, Node LTS, Docker) kurar.
+- R-8: Geliştirici yerelde veritabanını tek komutla ayağa kaldırıp uygulamayı çalıştırabilir;
+  nasıl yapılacağı README'de yazılıdır.
+
+## User experience
+- Flow: kullanıcı ana sayfayı açar → uygulama adı ve sistem durumu görünür.
+- States: yükleniyor (durum sorgulanıyor) · sağlıklı · sağlıksız/hata (sorgu başarısız ya da
+  veritabanı erişilemez). Boş durum ve yetki-yok durumu bu sayfada yoktur (veri ve giriş yok).
+- Design reference: none — the flow above is the design.
+- Accessibility: durum metinle de ifade edilir (yalnızca renkle değil); sayfa klavyeyle gezilebilir;
+  `lang="tr"`.
+
+## Constraints & out of scope
+- Yığın ve sürümler `docs/conventions.md`'ye uyar; PostgreSQL **18** (geliştirme ve test aynı imaj).
+- Yerel geliştirme veritabanı yalnızca bir compose dosyasıyla; check onu kullanmaz, testler kendi
+  geçici konteynerini açar (her koşu taze DB).
+- AC-5 kanıtı: verify'da kod geçici olarak bozulur; ihlal commit'lenmez.
+- AC-9: uzak depo SHIP'e kadar bağlanmazsa kriter `specs/backlog.md`'ye ertelenir.
+- Split: tek yetenek (çalışır iskelet), 10 kriter — bölünmedi (insan onayı, 2026-10-29).
+- Out of scope: tüm iş özellikleri (ürün, ihale, teklif, bildirim içeriği), giriş/kayıt/roller,
+  SignalR hub'ı, e-posta gönderimi, UI bileşen kütüphanesi seçimi, dağıtım (deployment), e2e testleri.
+- Yeni bağımlılıklar yalnızca `docs/conventions.md` / `docs/security.md`'de onaylı listeden
+  (EF Core + Npgsql, xUnit, Testcontainers, NetArchTest, React, Vite, Vitest, Testing Library,
+  ESLint, Prettier); listede olmayan her paket planda gerekçelendirilir.
+
+## Acceptance criteria
+- [ ] AC-1 — `./scripts/check` (full) gerçek adımlarla çalışır ve `CHECK GREEN (full, …)` verir.
+- [ ] AC-2 — `./scripts/check --fast` yalnızca `[fast]` adımlarını çalıştırır ve yeşil döner.
+- [ ] AC-3 — Veritabanı erişilebilirken durum kontrolü "sağlıklı" döner (gerçek PostgreSQL ile entegrasyon testi).
+- [ ] AC-4 — Veritabanı erişilemezken durum kontrolü "sağlıksız" döner ve yanıtta iç ayrıntı bulunmaz.
+- [ ] AC-5 — Mimari testler R-4 maddelerini doğrular; her madde için geçici bir ihlal eklendiğinde ilgili test kırmızıya düşer.
+- [ ] AC-6 — Ana sayfa yükleniyor, sağlıklı ve hata durumlarını Türkçe metinle gösterir (bileşen testleri).
+- [ ] AC-7 — `./scripts/residue` ve `./scripts/residue --fast` temiz (survivor yok); baseline ve iki ölçüm raporlanır.
+- [ ] AC-8 — Test bölme doğru: fast ve full-only test adımlarının sayıları toplamı tüm testlerin sayısına eşittir ve seçiciler eklenmeden önceki sayıyla aynıdır.
+- [ ] AC-9 — CI tanımı .NET 10 SDK ve Node LTS kurar ve `./scripts/check` (full) çalıştırır; kanıt ilk push'taki yeşil CI koşusudur.
+- [ ] AC-10 — README'deki yerel çalıştırma adımları izlendiğinde uygulama açılır ve ana sayfa "sağlıklı" gösterir.
+
+## Definition of Done
+- [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
+- [ ] `scripts/check` green
+- [ ] Independent review done; real findings fixed, noise rejected with written rationale, deferred ones in `specs/backlog.md`
+- [ ] Docs / ADRs updated if behavior or architecture changed
+- [ ] Spec moved to `specs/done/` (it becomes immutable there)
+
+## Scorecard (fill at ship — honest numbers make the process improvable)
+| Metric | Value |
+|---|---|
+| Spec revisions | |
+| Fix rounds | |
+| Review findings: real / noise / deferred | |
+| Regressions introduced | |
+| Bugs escaped to production | |
