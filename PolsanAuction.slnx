@@ -29,4 +29,8 @@
     <Project Path="src/Modules/Notification/PolsanAuction.Notification.Domain/PolsanAuction.Notification.Domain.csproj" />
     <Project Path="src/Modules/Notification/PolsanAuction.Notification.Infrastructure/PolsanAuction.Notification.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PolsanAuction.Api.IntegrationTests/PolsanAuction.Api.IntegrationTests.csproj" />
+    <Project Path="tests/PolsanAuction.Api.UnitTests/PolsanAuction.Api.UnitTests.csproj" />
+  </Folder>
 </Solution>

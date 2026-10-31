@@ -3,6 +3,9 @@
     <RootNamespace>PolsanAuction.Api</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Modules\Catalog\PolsanAuction.Catalog.Infrastructure\PolsanAuction.Catalog.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Auction\PolsanAuction.Auction.Infrastructure\PolsanAuction.Auction.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Identity\PolsanAuction.Identity.Infrastructure\PolsanAuction.Identity.Infrastructure.csproj" />
