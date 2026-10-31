@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PolsanAuction.Audit.Application\PolsanAuction.Audit.Application.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Api/">
+    <Project Path="src/Api/PolsanAuction.Api/PolsanAuction.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Auction/">
+    <Project Path="src/Modules/Auction/PolsanAuction.Auction.Application/PolsanAuction.Auction.Application.csproj" />
+    <Project Path="src/Modules/Auction/PolsanAuction.Auction.Domain/PolsanAuction.Auction.Domain.csproj" />
+    <Project Path="src/Modules/Auction/PolsanAuction.Auction.Infrastructure/PolsanAuction.Auction.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Audit/">
+    <Project Path="src/Modules/Audit/PolsanAuction.Audit.Application/PolsanAuction.Audit.Application.csproj" />
+    <Project Path="src/Modules/Audit/PolsanAuction.Audit.Domain/PolsanAuction.Audit.Domain.csproj" />
+    <Project Path="src/Modules/Audit/PolsanAuction.Audit.Infrastructure/PolsanAuction.Audit.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/PolsanAuction.Catalog.Application/PolsanAuction.Catalog.Application.csproj" />
+    <Project Path="src/Modules/Catalog/PolsanAuction.Catalog.Domain/PolsanAuction.Catalog.Domain.csproj" />
+    <Project Path="src/Modules/Catalog/PolsanAuction.Catalog.Infrastructure/PolsanAuction.Catalog.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/PolsanAuction.Identity.Application/PolsanAuction.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/PolsanAuction.Identity.Domain/PolsanAuction.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/PolsanAuction.Identity.Infrastructure/PolsanAuction.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Notification/">
+    <Project Path="src/Modules/Notification/PolsanAuction.Notification.Application/PolsanAuction.Notification.Application.csproj" />
+    <Project Path="src/Modules/Notification/PolsanAuction.Notification.Domain/PolsanAuction.Notification.Domain.csproj" />
+    <Project Path="src/Modules/Notification/PolsanAuction.Notification.Infrastructure/PolsanAuction.Notification.Infrastructure.csproj" />
+  </Folder>
+</Solution>
