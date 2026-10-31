@@ -10,25 +10,28 @@
 ## Frameworks & layout
 | Katman | Araç | Yer | Profil |
 |---|---|---|---|
-| Birim (backend) | xUnit | `tests/<Module>.UnitTests` | `[fast]` — `Category!=Integration` |
-| Mimari | xUnit + NetArchTest | `tests/ArchitectureTests` | `[fast]` — `Category!=Integration` |
-| Entegrasyon | xUnit + Testcontainers (PostgreSQL) + `WebApplicationFactory` | `tests/<Module>.IntegrationTests` | full — `Category=Integration` |
+| Birim (backend) | xUnit v3 (MTP) | `tests/PolsanAuction.<Module\|Api>.UnitTests` | `[fast]` — `--filter-not-trait "Category=Integration"` |
+| Mimari | xUnit v3 + ArchUnitNET | `tests/PolsanAuction.ArchitectureTests` | `[fast]` — `--filter-not-trait "Category=Integration"` |
+| Entegrasyon | xUnit v3 + Testcontainers (PostgreSQL 18) + `WebApplicationFactory` | `tests/PolsanAuction.<Module\|Api>.IntegrationTests` | full — `--filter-trait "Category=Integration"` |
 | Bileşen (UI) | Vitest + Testing Library (jsdom) | `web/src/**/*.test.tsx` | `[fast]` |
 | e2e | **yok** (MVP) | — | — |
 
 - Entegrasyon testleri sınıf düzeyinde `[Trait("Category", "Integration")]` taşır; fast/full ayrımı
-  bu seçiciyle yapılır (Two speeds, kural 4) — proje listesiyle değil.
+  bu seçiciyle yapılır (Two speeds, kural 4) — proje listesiyle değil. `--ignore-exit-code 8`
+  ("bir derlemede sıfır test") seçici yüzünden beklenir; toplam sayı kontrolü:
+  `dotnet test -c Release --no-build --list-tests` = fast + full-only.
 - Test adı: `<Davranış>_<Koşul>_<Beklenen>[_BRn]` (`docs/conventions.md`, Naming).
 
 **Determinizm — bu yığında nasıl:**
 - Saat: üretim kodu `TimeProvider` kullanır; testlerde `FakeTimeProvider`
   (`Microsoft.Extensions.TimeProvider.Testing`). Süre uzatma ve kapanış ileri sarılarak test edilir;
   `Thread.Sleep` / `Task.Delay` ile bekleme yasak.
-- Saat dilimi / kültür: test projeleri `TZ=Europe/Istanbul` ve `tr-TR` kültürüyle çalışır; ayrıca UTC
-  saklama testi vardır. Vitest: `process.env.TZ = 'Europe/Istanbul'`, `vi.useFakeTimers()` gerektiğinde.
+- Saat dilimi / kültür: her .NET test derlemesi `tests/TestCulture.cs` (module initializer) ile `tr-TR`
+  kültüründe çalışır; zaman UTC + `TimeProvider` olduğundan yerel saat dilimine bağlı test yazılmaz.
+  Vitest: `vite.config.ts` içinde `process.env.TZ = 'Europe/Istanbul'`, `vi.useFakeTimers()` gerektiğinde.
 - Rastgelelik: sabit seed; ID'ler test veri fabrikasından.
-- Hareket: Vitest/jsdom'da animasyon yok; `matchMedia('(prefers-reduced-motion: reduce)')` mock'u true
-  döner; uygulamanın test modunda geçişler kapalıdır.
+- Hareket: Vitest/jsdom'da animasyon yok; `web/src/test/setup.ts`'deki `matchMedia` mock'u
+  `prefers-reduced-motion: reduce` için true döner; `index.css` reduced-motion'da animasyon ve geçişleri kapatır.
 - Harici servisler: e-posta için sahte gönderici (`FakeEmailSender`), OIDC için test kimlik doğrulama
   şeması; SignalR UI testlerinde mock bağlantı.
 - Veri: her entegrasyon test koşusu taze bir PostgreSQL konteyneri kullanır; konteyner test oturumu

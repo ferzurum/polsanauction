@@ -12,6 +12,21 @@ Use this repo as a GitHub template (or drop it into an existing project), instal
 your AI tool, run the bootstrap workflow, and start your first feature. No frameworks, no
 dependencies, no code generators — a working *system*, written in Markdown plus a few small POSIX scripts.
 
+## Polsan Auction — yerelde çalıştırma
+
+Proje kuralları `AGENTS.md`'de. Gerekenler: .NET SDK 10.0.403+ (`global.json`), Node 22+ LTS,
+Docker Desktop (geliştirme veritabanı ve `./scripts/check` full profilindeki entegrasyon testleri).
+
+1. Geliştirme veritabanı: `.env.example` dosyasını `.env` olarak kopyalayın, `POSTGRES_PASSWORD`
+   değerini değiştirin, sonra `docker compose up -d`.
+2. API bağlantı dizesi (sır, repoya girmez):
+   `dotnet user-secrets set ConnectionStrings:Default "Host=127.0.0.1;Port=5432;Database=polsan_auction;Username=polsan;Password=<.env'deki parola>" --project src/Api/PolsanAuction.Api`
+3. API: `dotnet run --project src/Api/PolsanAuction.Api` → http://localhost:5080/api/health
+4. Web: `npm --prefix web ci` ardından `npm --prefix web run dev` → Vite'ın yazdığı adres
+   (ör. http://localhost:5173). Ana sayfa "Sistem çalışıyor." göstermelidir; `/api` istekleri
+   5080'e yönlendirilir.
+5. Doğrulama: `./scripts/check` (full, Docker gerekir) · `./scripts/check --fast` (iç döngü).
+
 ## Why this exists
 
 AI lowers development latency — and amplifies decision errors. A misunderstood requirement once

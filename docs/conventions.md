@@ -13,8 +13,10 @@
 
 ## Language & framework versions
 - Backend: .NET 10 (LTS), C# (SDK `global.json` ile sabitlenir), ASP.NET Core, EF Core + Npgsql, SignalR.
-- Frontend: Node 22+ LTS (yerelde 26 kurulu), React + TypeScript (strict), Vite.
-- Veritabanı: PostgreSQL (sürüm iskelet spec'inde sabitlenir; testlerde Testcontainers ile aynı imaj).
+- Testler: xUnit v3, **Microsoft.Testing.Platform** çalıştırıcısıyla (`global.json` → `test.runner`);
+  VSTest modu .NET 10 + xunit.v3 4.x'te desteklenmez (plan 0001, A-1).
+- Frontend: Node 22+ LTS (CI 24), React 19 + TypeScript 7 (strict), Vite 8, Vitest 5.
+- Veritabanı: **PostgreSQL 18** (`postgres:18-alpine`; geliştirme `compose.yaml` ve testlerde aynı imaj).
 - Paket sürümleri sabitlenir (NuGet Central Package Management, `package-lock.json` commit'lenir).
 - Yeni bağımlılık eklemek için spec'te gerekçe gerekir; ticari ya da lisansı belirsiz paket
   (ör. AutoMapper/MediatR yeni sürümleri, FluentAssertions 8+) onaysız eklenmez (`docs/security.md`).
@@ -22,6 +24,7 @@
 ## Naming
 - C#: standart .NET konvansiyonları — tipler/metotlar `PascalCase`, private alanlar `_camelCase`,
   async metotlar `…Async`. `.editorconfig` ile zorlanır.
+- C# sabitleri ve `static readonly` alanlar `PascalCase` (`.editorconfig`).
 - TS/React: değişken/fonksiyon `camelCase`, bileşenler ve dosyaları `PascalCase.tsx`, hook'lar `useX`.
 - Veritabanı: `snake_case` (Npgsql naming convention ile otomatik).
 - API: `/api/<kaynak-çoğul>/{id}/<alt-kaynak>`, ör. `POST /api/auctions/{id}/bids`.
@@ -56,6 +59,9 @@
 
 ## Enforced by tooling
 - Derleyici: `<Nullable>enable</Nullable>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, .NET analyzers.
-- `dotnet format --verify-no-changes` (`.editorconfig`), ESLint + Prettier, `tsc --noEmit` (strict).
-- Mimari testler (`docs/architecture.md`, Forbidden dependencies).
+- `dotnet format --verify-no-changes` (`.editorconfig`), oxlint + Prettier (`npm run lint`),
+  `tsc -b` (strict). ESLint değil: typescript-eslint TS 7'yi desteklemiyor (plan 0001, A-2).
+- `Microsoft.CodeAnalysis.BannedApiAnalyzers` + `BannedSymbols.txt`: `DateTime.Now/UtcNow/Today` ve
+  `DateTimeOffset.Now/UtcNow` derleme hatasıdır (RS0030) — `TimeProvider` kullanılır.
+- Mimari testler — ArchUnitNET (`docs/architecture.md`, Forbidden dependencies).
 - Hepsi `scripts/check` adımlarıdır (`scripts/check.conf`).
