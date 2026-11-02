@@ -27,7 +27,10 @@
   (`Microsoft.Extensions.TimeProvider.Testing`). Süre uzatma ve kapanış ileri sarılarak test edilir;
   `Thread.Sleep` / `Task.Delay` ile bekleme yasak.
 - Saat dilimi / kültür: her .NET test derlemesi `tests/TestCulture.cs` (module initializer) ile `tr-TR`
-  kültüründe çalışır; zaman UTC + `TimeProvider` olduğundan yerel saat dilimine bağlı test yazılmaz.
+  kültüründe çalışır. Saat dilimi .NET'te süreç içinden güvenilir biçimde ayarlanamaz
+  (`TimeZoneInfo.Local` önbelleklenir); bu yüzden zaman UTC + `TimeProvider` ile tutulur ve yerel saat
+  dilimine bağlı test yazılmaz. Zaman alanı içeren her özellik bir UTC saklama testi taşır
+  (yazılan ve okunan değer `Offset == TimeSpan.Zero`).
   Vitest: `vite.config.ts` içinde `process.env.TZ = 'Europe/Istanbul'`, `vi.useFakeTimers()` gerektiğinde.
 - Rastgelelik: sabit seed; ID'ler test veri fabrikasından.
 - Hareket: Vitest/jsdom'da animasyon yok; `web/src/test/setup.ts`'deki `matchMedia` mock'u
