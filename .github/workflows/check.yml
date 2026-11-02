@@ -2,6 +2,7 @@ name: check
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   doctor:
@@ -37,3 +38,23 @@ jobs:
           else
             echo "scripts/check.conf not present yet (pre-bootstrap) — skipping."
           fi
+
+  # Resource hygiene proof on a clean, idle machine (docs/testing.md; spec 0001 AC-7, amendment A-5).
+  # Runs check four times (full twice, fast twice), so only on pull requests and on demand.
+  residue:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Residue test, full profile
+        run: ./scripts/residue
+      - name: Residue test, fast profile
+        run: ./scripts/residue --fast
