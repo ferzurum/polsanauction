@@ -57,6 +57,7 @@
 - SignalR bağlantısı koptuğunda UI eski fiyatı gösterebilir — yeniden bağlanınca güncel durumu API'den yeniden çek — from bootstrap.
 - İhale kapanışını bir isteğe bağlamak kapanışı geciktirir — kapanış `BackgroundService` + `TimeProvider` ile zamanlanır — from bootstrap.
 - Windows'ta `core.autocrlf=true` + `* text=auto` checkout'u CRLF yapar, Prettier ve `dotnet format` kırmızıya düşer — `.gitattributes`'taki `* text=auto eol=lf` korunur — from spec 0001, VERIFY F-1 (A-4).
+- Windows'tan commit'lenen script çalıştırılabilir bitini kaybeder (`100644`), Linux CI `Permission denied` verir — yeni script'te `git update-index --chmod=+x -- <yol>` ve `git ls-files -s` ile `100755` doğrulanır — from spec 0001, CI (A-6).
 
 ## Enforced by tooling
 - Derleyici: `<Nullable>enable</Nullable>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, .NET analyzers.
