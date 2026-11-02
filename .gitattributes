@@ -1,6 +1,7 @@
 # Normalize line endings; POSIX scripts must stay LF even on Windows checkouts (autocrlf=true),
-# otherwise `sh` fails on the carriage return.
-* text=auto
+# otherwise `sh` fails on the carriage return. Every text file is checked out as LF: Prettier and
+# dotnet format expect LF, so a fresh Windows clone must not turn check red (spec 0001, VERIFY F-1).
+* text=auto eol=lf
 scripts/* text eol=lf
 *.sh text eol=lf
 *.md text
