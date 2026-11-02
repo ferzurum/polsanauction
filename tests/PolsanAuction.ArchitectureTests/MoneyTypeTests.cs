@@ -5,7 +5,8 @@ namespace PolsanAuction.ArchitectureTests;
 /// <summary>docs/architecture.md, forbidden dependency 6: money is whole kuruş in a <c>long</c>, never floating point.</summary>
 public sealed class MoneyTypeTests
 {
-    private static readonly string[] MoneyNameParts = ["Amount", "Price", "Kurus"];
+    // Matched case-insensitively, so private _camelCase fields (_price, _amountKurus) are covered too.
+    private static readonly string[] MoneyNameParts = ["Amount", "Price", "Kurus", "Kuruş"];
 
     private const BindingFlags AllMembers =
         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
@@ -29,5 +30,5 @@ public sealed class MoneyTypeTests
             .Concat(type.GetFields(AllMembers)
                 .Where(field => !field.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute)))
                 .Select(field => (field.Name, field.FieldType)))
-            .Where(member => MoneyNameParts.Any(part => member.Name.Contains(part, StringComparison.Ordinal)));
+            .Where(member => MoneyNameParts.Any(part => member.Name.Contains(part, StringComparison.OrdinalIgnoreCase)));
 }
