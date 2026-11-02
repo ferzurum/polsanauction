@@ -33,6 +33,14 @@ describe('App — sistem durumu', () => {
     ).toHaveAttribute('role', 'status')
   })
 
+  it('shows the error state when a 200 response does not report Healthy', async () => {
+    stubFetch(() => Promise.resolve(Response.json({ status: 'Unhealthy' })))
+    render(<App />)
+    expect(
+      await screen.findByText('Sistem şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.'),
+    ).toHaveAttribute('role', 'status')
+  })
+
   it('shows the error state when the backend cannot be reached', async () => {
     stubFetch(() => Promise.reject(new TypeError('Failed to fetch')))
     render(<App />)
