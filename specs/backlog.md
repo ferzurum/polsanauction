@@ -10,3 +10,6 @@ step 7). Nothing lands here without that decision; noise is rejected in the tria
 - **B-<n>** — <finding, one line> — Source: spec <NNNN>, review round <n> (<file:line>) — Severity: <…>
   — Recommendation: <the reviewer's action> — Deferred by: <name>, <YYYY-MM-DD>, <why>
 -->
+
+- **B-1** — Forbidden dependency 1 checks type usage, not package/project references: an unused `PackageReference` (e.g. EF Core) in a `*.Domain.csproj` passes until the first type is used — Source: spec 0001, review round 1 (`tests/PolsanAuction.ArchitectureTests/LayerDependencyTests.cs:9-25`) — Severity: Low
+  — Recommendation: add a test that scans `*.Domain.csproj` `PackageReference`/`ProjectReference` items — Deferred by: ferzurum, 2026-11-02, harm is only delayed (first type use turns the test red); add with the first spec that gives a Domain layer real types
