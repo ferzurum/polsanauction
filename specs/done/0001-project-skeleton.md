@@ -1,7 +1,7 @@
 # Spec 0001 — Proje iskeleti
 <!-- Small behavior changes use TEMPLATE-mini.md — brevity is sanctioned, discipline is not. -->
 
-- Status: In progress
+- Status: Shipped
 - Mode: lite
 - Plan: `specs/plans/0001-plan.md`
 
@@ -59,29 +59,30 @@ kontrolüdür. Hiçbir iş özelliği (ürün, ihale, teklif, giriş/kayıt) bu 
   ESLint, Prettier); listede olmayan her paket planda gerekçelendirilir.
 
 ## Acceptance criteria
-- [ ] AC-1 — `./scripts/check` (full) gerçek adımlarla çalışır ve `CHECK GREEN (full, …)` verir.
-- [ ] AC-2 — `./scripts/check --fast` yalnızca `[fast]` adımlarını çalıştırır ve yeşil döner.
-- [ ] AC-3 — Veritabanı erişilebilirken durum kontrolü "sağlıklı" döner (gerçek PostgreSQL ile entegrasyon testi).
-- [ ] AC-4 — Veritabanı erişilemezken durum kontrolü "sağlıksız" döner ve yanıtta iç ayrıntı bulunmaz.
-- [ ] AC-5 — Mimari testler R-4 maddelerini doğrular; her madde için geçici bir ihlal eklendiğinde ilgili test kırmızıya düşer.
-- [ ] AC-6 — Ana sayfa yükleniyor, sağlıklı ve hata durumlarını Türkçe metinle gösterir (bileşen testleri).
-- [ ] AC-7 — `./scripts/residue` ve `./scripts/residue --fast` temiz (survivor yok); baseline ve iki ölçüm raporlanır.
-- [ ] AC-8 — Test bölme doğru: fast ve full-only test adımlarının sayıları toplamı tüm testlerin sayısına eşittir ve seçiciler eklenmeden önceki sayıyla aynıdır.
-- [ ] AC-9 — CI tanımı .NET 10 SDK ve Node LTS kurar ve `./scripts/check` (full) çalıştırır; kanıt ilk push'taki yeşil CI koşusudur.
-- [ ] AC-10 — README'deki yerel çalıştırma adımları izlendiğinde uygulama açılır ve ana sayfa "sağlıklı" gösterir.
+- [x] AC-1 — `./scripts/check` (full) gerçek adımlarla çalışır ve `CHECK GREEN (full, …)` verir. — Kanıt: CI [run 41477725539](https://github.com/ferzurum/polsanauction/actions/runs/41477725539) (SHA 8c8045b) `CHECK GREEN (full, 11 steps, 77 s)`; QA worktree `CHECK GREEN (full, 11 steps, 179 s)`.
+- [x] AC-2 — `./scripts/check --fast` yalnızca `[fast]` adımlarını çalıştırır ve yeşil döner. — Kanıt: QA `CHECK GREEN (fast, 7 steps, 69 s)`, `skip` yalnızca full-only adımlar; CI residue job'ında `CHECK GREEN (fast, 7 steps, 21 s)`.
+- [x] AC-3 — Veritabanı erişilebilirken durum kontrolü "sağlıklı" döner (gerçek PostgreSQL ile entegrasyon testi). — Kanıt: `HealthEndpointTests.Health_DatabaseReachable_ReturnsHealthy` (full); kasıtlı `Degraded` → kırmızı (VERIFY).
+- [x] AC-4 — Veritabanı erişilemezken durum kontrolü "sağlıksız" döner ve yanıtta iç ayrıntı bulunmaz. — Kanıt: `HealthEndpointUnreachableDatabaseTests.Health_DatabaseUnreachable_ReturnsUnhealthyWithoutDetails` (full), `HealthResponseTests.*` (fast); `detail` yazdırma ve catch→Healthy bozmaları → kırmızı (VERIFY).
+- [x] AC-5 — Mimari testler R-4 maddelerini doğrular; her madde için geçici bir ihlal eklendiğinde ilgili test kırmızıya düşer. — Kanıt: `LayerDependencyTests.*`, `ModuleBoundaryTests.*`, `MoneyTypeTests.*` (fast); madde 1, 2, 3, 6 kasıtlı ihlal → ilgili test kırmızı, madde 5 → RS0030 derleme hatası (VERIFY). Paket referansı kontrolü B-1'de.
+- [x] AC-6 — Ana sayfa yükleniyor, sağlıklı ve hata durumlarını Türkçe metinle gösterir (bileşen testleri). — Kanıt: `web/src/App.test.tsx` 6 test (fast), G-1 dahil; durum eşlemesini ters çevirme → kırmızı (VERIFY).
+- [x] AC-7 — `./scripts/residue` ve `./scripts/residue --fast` temiz (survivor yok); baseline ve iki ölçüm raporlanır. — Kanıt: CI [run 41477725539](https://github.com/ferzurum/polsanauction/actions/runs/41477725539) residue job: full baseline 39 süreç → 2 koşuda 0 survivor (−13/−21 MB) `RESIDUE CLEAN (full, 2 runs)`; fast baseline 36 → 0 survivor (−157/−141 MB) `RESIDUE CLEAN (fast, 2 runs)`. Yerel Windows ölçümleri boşta olmayan makinede yalnızca check dışı survivor gösterdi (A-5).
+- [x] AC-8 — Test bölme doğru: fast ve full-only test adımlarının sayıları toplamı tüm testlerin sayısına eşittir ve seçiciler eklenmeden önceki sayıyla aynıdır. — Kanıt: `dotnet test -c Release --no-build --list-tests`: seçicisiz 23 = `--filter-not-trait "Category=Integration"` 21 + `--filter-trait "Category=Integration"` 2; vitest 6 (QA).
+- [x] AC-9 — CI tanımı .NET 10 SDK ve Node LTS kurar ve `./scripts/check` (full) çalıştırır; kanıt ilk push'taki yeşil CI koşusudur. — Kanıt: CI [run 41477725539](https://github.com/ferzurum/polsanauction/actions/runs/41477725539) `check` job yeşil, SHA 8c8045b. Not: ilk push kırmızıydı (script exec biti, `Permission denied`) — fix-3 / A-6 sonrası yeşil.
+- [x] AC-10 — README'deki yerel çalıştırma adımları izlendiğinde uygulama açılır ve ana sayfa "sağlıklı" gösterir. — Kanıt: [PR #1 yorumu](https://github.com/ferzurum/polsanauction/pull/1#issuecomment-6583387068) — bağımsız QA, README adımları: `/api/health` doğrudan ve Vite proxy'si üzerinden 200 Healthy, ana sayfa `lang="tr"` + başlık, DB durdurulunca 503 Unhealthy (A-7).
 
 ## Definition of Done
-- [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
-- [ ] `scripts/check` green
-- [ ] Independent review done; real findings fixed, noise rejected with written rationale, deferred ones in `specs/backlog.md`
-- [ ] Docs / ADRs updated if behavior or architecture changed
-- [ ] Spec moved to `specs/done/` (it becomes immutable there)
+- [x] Every acceptance criterion mapped to proof (test or reproducible observation)
+- [x] `scripts/check` green
+- [x] Independent review done; real findings fixed, noise rejected with written rationale, deferred ones in `specs/backlog.md`
+- [x] Docs / ADRs updated if behavior or architecture changed
+- [x] Spec moved to `specs/done/` (it becomes immutable there)
 
 ## Scorecard (fill at ship — honest numbers make the process improvable)
 | Metric | Value |
 |---|---|
-| Spec revisions | |
-| Fix rounds | |
-| Review findings: real / noise / deferred | |
-| Regressions introduced | |
-| Bugs escaped to production | |
+| Spec revisions | 1 (clarify cevapları onayda işlendi) |
+| Fix rounds | 3 (fix-1: review tur 1 · fix-2: VERIFY F-1/G-1 · fix-3: CI exec biti) |
+| Review findings: real / noise / deferred | 9 / 1 / 4 (B-1, B-4 açık; B-2, B-3 bu PR'da CI ile kapandı) |
+| Regressions introduced | 0 |
+| Bugs escaped to production | 0 (henüz dağıtım yok) |
+| Plan amendments | 7 (A-1 … A-7) |
