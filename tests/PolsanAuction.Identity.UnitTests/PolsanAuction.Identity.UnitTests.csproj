@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Identity\PolsanAuction.Identity.Domain\PolsanAuction.Identity.Domain.csproj" />
+  </ItemGroup>
+</Project>
