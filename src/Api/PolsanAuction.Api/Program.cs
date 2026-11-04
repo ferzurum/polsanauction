@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using PolsanAuction.Api.Auth;
 using PolsanAuction.Api.Health;
+using PolsanAuction.Identity.Application;
 using PolsanAuction.Identity.Infrastructure;
 using PolsanAuction.Notification.Infrastructure;
 
@@ -9,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddNotificationModule();
+builder.Services.AddProblemDetails();
+builder.Services.AddSingleton<IAccountLinks, AccountLinks>();
 
 var app = builder.Build();
 
@@ -25,6 +29,8 @@ app.MapHealthChecks("/api/health", new HealthCheckOptions
         [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable,
     },
 }).AllowAnonymous();
+
+app.MapAuthEndpoints();
 
 app.Run();
 
