@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PolsanAuction.Api.Health;
+using PolsanAuction.Identity.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
+builder.Services.AddIdentityModule(builder.Configuration);
 
 var app = builder.Build();
+
+await app.InitializeIdentityDatabaseAsync();
 
 // Anonymous by design (docs/security.md): reveals only Healthy / Unhealthy.
 app.MapHealthChecks("/api/health", new HealthCheckOptions
