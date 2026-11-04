@@ -16,6 +16,10 @@
 | Bileşen (UI) | Vitest + Testing Library (jsdom) | `web/src/**/*.test.tsx` | `[fast]` |
 | e2e | **yok** (MVP) | — | — |
 
+- Veritabanı gereken her entegrasyon test sınıfı `[Collection(PostgresTestGroup.Name)]` ile tek bir
+  paylaşılan PostgreSQL konteynerini kullanır (koşu başına taze, sonunda kapanır); veriler her testte yeni
+  e-posta adresiyle ayrışır (`AuthApp.NewEmail`). `AuthApp`: sahte saat (`FakeTimeProvider`), sahte e-posta
+  gönderici, https istemci + antiforgery başlığı, test için yüksek kayıt sınırı.
 - Entegrasyon testleri sınıf düzeyinde `[Trait("Category", "Integration")]` taşır; fast/full ayrımı
   bu seçiciyle yapılır (Two speeds, kural 4) — proje listesiyle değil. `--ignore-exit-code 8`
   ("bir derlemede sıfır test") seçici yüzünden beklenir; toplam sayı kontrolü:

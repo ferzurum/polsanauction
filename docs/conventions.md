@@ -57,7 +57,18 @@
 - SignalR bağlantısı koptuğunda UI eski fiyatı gösterebilir — yeniden bağlanınca güncel durumu API'den yeniden çek — from bootstrap.
 - İhale kapanışını bir isteğe bağlamak kapanışı geciktirir — kapanış `BackgroundService` + `TimeProvider` ile zamanlanır — from bootstrap.
 - Windows'ta `core.autocrlf=true` + `* text=auto` checkout'u CRLF yapar, Prettier ve `dotnet format` kırmızıya düşer — `.gitattributes`'taki `* text=auto eol=lf` korunur — from spec 0001, VERIFY F-1 (A-4).
+- ASP.NET Core Identity'nin doğrulama token'ı ve kilidi `TimeProvider` kullanmaz — süre testleri için token `ConfirmationTokenCodec` ile üretilir; kilit testi bitiş zamanını veritabanında geçmişe çeker — from spec 0002, A-1.
+- EF Core sağlayıcının `DbException`'ını `InvalidOperationException` ("transient failure") içine sarar — "DB erişilemez" yakalarken istisna zincirine bakılır — from spec 0002, adım 6.
+- Kimlik çerezleri `Secure` — entegrasyon testlerinde istemci `https://localhost` taban adresiyle açılır (`AuthApp.CreateApiClientAsync`) — from spec 0002, adım 5.
 - Windows'tan commit'lenen script çalıştırılabilir bitini kaybeder (`100644`), Linux CI `Permission denied` verir — yeni script'te `git update-index --chmod=+x -- <yol>` ve `git ls-files -s` ile `100755` doğrulanır — from spec 0001, CI (A-6).
+
+## Database migrations
+- Şema değişikliği yalnızca migration ile: `dotnet tool restore`, ardından
+  `dotnet ef migrations add <Ad> --project src/Modules/<Modül>/PolsanAuction.<Modül>.Infrastructure --output-dir Migrations`.
+- Üretilen dosyalar elle düzenlenmez (`.editorconfig`: generated code). `MigrationTests` modelde migration'a
+  girmemiş değişiklik kalırsa kırmızıya düşer.
+- Açılışta migration yalnızca `Database:MigrateOnStartup=true` iken (yerelde `launchSettings`, testlerde `AuthApp`);
+  üretim stratejisi dağıtım spec'inde.
 
 ## Enforced by tooling
 - Derleyici: `<Nullable>enable</Nullable>`, `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, .NET analyzers.

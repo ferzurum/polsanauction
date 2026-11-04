@@ -11,6 +11,12 @@ services:
       - '127.0.0.1:5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql
+    # "docker compose up -d --wait" returns only once the database accepts connections (backlog B-4).
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U polsan -d polsan_auction']
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
 volumes:
   pgdata:

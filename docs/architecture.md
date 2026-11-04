@@ -38,7 +38,12 @@ tests/                         PolsanAuction.<Module|Api>.UnitTests / .Integrati
 
 - Modüller birbirine yalnızca diğer modülün **public arayüzü** (Application katmanındaki
   sözleşmeler) ya da **domain olayları** üzerinden erişir.
-- **Doğrudan çağrı:** okuma amaçlı ve senkron ihtiyaçta (Auction → Catalog: ürün özeti).
+- **Doğrudan çağrı:** okuma amaçlı ve senkron ihtiyaçta (Auction → Catalog: ürün özeti; Identity →
+  Notification: `IEmailSender` + Türkçe şablonlar, spec 0002).
+- **Identity** (spec 0002, ADR 0001): kurallar `Identity.Domain`'de (e-posta, ad, parola, kayıt), use case'ler
+  `Identity.Application`'da (port: `IUserAccounts`, `IAccountSignIn`, `IAccountLinks`), ASP.NET Core Identity,
+  EF Core (`identity` şeması), çerez ve token codec'i `Identity.Infrastructure`'da. Api yalnızca uç noktaları,
+  antiforgery'yi, hız sınırını ve e-posta bağlantı adreslerini (`App:WebBaseUrl`) bağlar.
 - **Olay:** yan etkiler için (Auction `AuctionClosed`, `BidPlaced` → Notification, Audit, SignalR).
 - **Yasak:** bir modülün diğerinin tablolarına, `DbContext`'ine ya da `internal` tiplerine erişmesi.
 - İş kuralı kararları yalnızca Auction (ve Identity) **Domain** katmanında verilir; API ve UI

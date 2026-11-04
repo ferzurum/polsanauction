@@ -35,7 +35,21 @@
 - **Roller** uygulama içinde tutulur (`Admin`, `Bidder`). İlk Admin yapılandırmadan seed edilir;
   sonrakileri Admin atar. AD grubu varsa ek bir kaynaktır.
 - Yetki kontrolü **sunucuda, her uç noktada ve SignalR hub metodunda** yapılır; UI'da gizleme yetki değildir.
-- Çerezler `HttpOnly`, `Secure`, `SameSite=Lax/Strict`; CSRF koruması (antiforgery) açık; yalnızca HTTPS.
+- **Oturum (spec 0002, ADR 0001):** ASP.NET Core Identity + `polsan.auth` çerezi — `HttpOnly`, `Secure`,
+  `SameSite=Strict`, 8 saat hareketsizlikte biter (kayan), "beni hatırla" yok. API yönlendirme yapmaz:
+  oturumsuz → 401, yetkisiz → 403.
+- **CSRF:** her `POST` `X-XSRF-TOKEN` başlığında antiforgery token'ı taşır (`GET /api/auth/antiforgery`);
+  token kullanıcıya bağlıdır, istemci giriş/çıkıştan sonra yeniler. Eksik/yanlış → 400 `csrf.invalid`.
+- **Anonim auth uç noktaları:** `GET /api/auth/antiforgery`, `POST /api/auth/register | confirm-email |
+  resend-confirmation | login`. `logout`, `me` ve `/api/admin` oturum ister; `/api/admin` `Admin` rolü ister.
+- **Hesap tespitini önleme:** kayıt (yeni/var olan adres), yeniden gönderim (bilinmeyen/doğrulanmış adres) ve
+  giriş (yanlış parola/bilinmeyen e-posta) aynı yanıtı verir; "doğrulanmamış" yalnızca parola doğruysa söylenir.
+- **Kilit ve sınırlar:** 5 hatalı giriş → 15 dk kilit; kayıt kaynak başına saatte 10; doğrulama yeniden
+  gönderimi adres başına dakikada 1 (adres kayıtlı olmasa da) → 429 `rate_limited`.
+- **Doğrulama bağlantısı:** Data Protection ile şifreli/imzalı, 24 saat, tek kullanımlık (`ConfirmationTokenCodec`).
+- **Açık (dağıtım spec'i):** Data Protection anahtarlarının kalıcı saklanması; ters proxy arkasında gerçek
+  istemci IP'si için `ForwardedHeaders`.
+- Yalnızca HTTPS.
 - Erişim yalnızca intranet / VPN; uygulama internete açılmaz.
 
 ## Personal data (KVKK)
