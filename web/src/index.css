@@ -22,3 +22,45 @@ main {
     transition: none !important;
   }
 }
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  max-width: 28rem;
+}
+
+.field input {
+  font: inherit;
+  padding: 0.5rem;
+}
+
+/* Errors are stated in words; the colour only reinforces them (spec 0002, Accessibility). */
+.field-error,
+[role='alert'] {
+  color: #b00020;
+}
+
+@media (prefers-color-scheme: dark) {
+  .field-error,
+  [role='alert'] {
+    color: #ff8a80;
+  }
+}
