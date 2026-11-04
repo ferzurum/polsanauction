@@ -2,13 +2,14 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PolsanAuction.Identity.Application;
 using PolsanAuction.Identity.Domain;
 
 namespace PolsanAuction.Identity.Infrastructure;
 
 /// <summary><see cref="IUserAccounts"/> on ASP.NET Core Identity. Passwords are hashed by Identity, never stored as given.</summary>
-internal sealed class UserAccounts(IdentityDbContext db, UserManager<ApplicationUser> users) : IUserAccounts
+internal sealed class UserAccounts(IdentityDbContext db, UserManager<ApplicationUser> users, IOptions<IdentitySettings> settings) : IUserAccounts
 {
     public async Task<IReadOnlyList<string>> GetAllowedDomainsAsync(CancellationToken cancellationToken) =>
         await db.AllowedEmailDomains.Select(domain => domain.Domain).ToListAsync(cancellationToken);
@@ -71,7 +72,13 @@ internal sealed class UserAccounts(IdentityDbContext db, UserManager<Application
         }
 
         var result = await users.ConfirmEmailAsync(user, decoded);
-        return result.Succeeded ? ConfirmationOutcome.Confirmed : ConfirmationOutcome.Invalid;
+        if (!result.Succeeded)
+        {
+            return ConfirmationOutcome.Invalid;
+        }
+
+        await InitialAdminSeeder.EnsureAsync(users, settings.Value, user);
+        return ConfirmationOutcome.Confirmed;
     }
 
     private static string? Decode(string token)

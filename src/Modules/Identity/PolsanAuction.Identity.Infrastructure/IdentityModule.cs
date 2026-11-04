@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PolsanAuction.Identity.Application;
 using PolsanAuction.Identity.Domain;
 
@@ -26,6 +29,7 @@ public static class IdentityModule
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
         services.TryAddSingleton(TimeProvider.System);
+        services.AddOptions<IdentitySettings>().Bind(configuration.GetSection(IdentitySettings.Section));
         services.AddDbContext<IdentityDbContext>(options =>
             Configure(options, configuration.GetConnectionString("Default") ?? string.Empty));
 
@@ -85,25 +89,43 @@ public static class IdentityModule
         services.AddScoped<RegisterUser>();
         services.AddScoped<ConfirmEmail>();
         services.AddScoped<ResendConfirmation>();
+        services.AddSingleton(provider => new ResendThrottle(
+            provider.GetRequiredService<TimeProvider>(),
+            provider.GetRequiredService<IOptions<IdentitySettings>>().Value.ResendInterval));
         return services;
     }
 
     /// <summary>
-    /// Applies pending migrations, then seeds the roles and the allowed-domain list. Runs only when
-    /// <c>Database:MigrateOnStartup</c> is true (local development via launchSettings, integration tests).
+    /// When <c>Database:MigrateOnStartup</c> is true (local development via launchSettings, integration tests):
+    /// applies pending migrations and seeds the roles and the allowed-domain list. Always: makes the configured
+    /// initial admin an Admin (R-8) — a database that is down only logs a warning, the app still starts.
     /// </summary>
     public static async Task InitializeIdentityDatabaseAsync(this WebApplication app, CancellationToken cancellationToken = default)
     {
-        if (!app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+        await using var scope = app.Services.CreateAsyncScope();
+        var settings = scope.ServiceProvider.GetRequiredService<IOptions<IdentitySettings>>().Value;
+
+        if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
         {
-            return;
+            await MigrateAndSeedAsync(scope.ServiceProvider, settings, cancellationToken);
         }
 
-        await using var scope = app.Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        try
+        {
+            await InitialAdminSeeder.EnsureAsync(scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(), settings);
+        }
+        catch (Exception exception) when (IsDatabaseUnreachable(exception))
+        {
+            IdentityLog.InitialAdminCheckSkipped(app.Logger, exception);
+        }
+    }
+
+    private static async Task MigrateAndSeedAsync(IServiceProvider services, IdentitySettings settings, CancellationToken cancellationToken)
+    {
+        var db = services.GetRequiredService<IdentityDbContext>();
         await db.Database.MigrateAsync(cancellationToken);
 
-        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var roles = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         foreach (var role in new[] { Roles.Admin, Roles.Bidder })
         {
             if (!await roles.RoleExistsAsync(role))
@@ -112,8 +134,21 @@ public static class IdentityModule
             }
         }
 
-        var initialDomains = app.Configuration.GetSection("Identity:InitialAllowedDomains").Get<string[]>() ?? [];
-        await AllowedDomainSeeder.SeedAsync(db, initialDomains, cancellationToken);
+        await AllowedDomainSeeder.SeedAsync(db, settings.InitialAllowedDomains, cancellationToken);
+    }
+
+    /// <summary>EF Core wraps the provider's DbException (e.g. "transient failure"), so look through the chain.</summary>
+    private static bool IsDatabaseUnreachable(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is DbException)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Task Reject(HttpResponse response, int statusCode)

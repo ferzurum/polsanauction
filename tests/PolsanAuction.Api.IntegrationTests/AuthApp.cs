@@ -16,7 +16,8 @@ namespace PolsanAuction.Api.IntegrationTests;
 /// The API hosted against the shared test database: migrations on startup, a fixed fake clock
 /// (docs/testing.md, Determinism) and a fake e-mail sender that records instead of sending.
 /// </summary>
-public sealed partial class AuthApp(string connectionString) : WebApplicationFactory<Program>
+public sealed partial class AuthApp(string connectionString, IReadOnlyDictionary<string, string>? settings = null)
+    : WebApplicationFactory<Program>
 {
     public const string AllowedDomain = "polsanteknoloji.com.tr";
     public const string Password = "on-karakter-parola";
@@ -98,6 +99,16 @@ public sealed partial class AuthApp(string connectionString) : WebApplicationFac
     {
         builder.UseSetting("ConnectionStrings:Default", connectionString);
         builder.UseSetting("Database:MigrateOnStartup", "true");
+
+        // Every request in a test comes from the same source, so sign-up uses a high limit unless a test
+        // sets the real one (plan 0002, risk 4); no test account matches the configured initial admin.
+        builder.UseSetting("Identity:RegisterAttemptsPerHour", "1000");
+        builder.UseSetting("Identity:InitialAdminEmail", string.Empty);
+        foreach (var (key, value) in settings ?? new Dictionary<string, string>())
+        {
+            builder.UseSetting(key, value);
+        }
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<TimeProvider>();

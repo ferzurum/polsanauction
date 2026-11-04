@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using PolsanAuction.Api.Admin;
 using PolsanAuction.Api.Auth;
 using PolsanAuction.Api.Health;
 using PolsanAuction.Identity.Application;
+using PolsanAuction.Identity.Domain;
 using PolsanAuction.Identity.Infrastructure;
 using PolsanAuction.Notification.Infrastructure;
 
@@ -13,7 +15,9 @@ builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddNotificationModule();
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<IAccountLinks, AccountLinks>();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(AdminEndpoints.Policy, policy => policy.RequireRole(Roles.Admin)));
+builder.Services.AddAuthRateLimits();
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = AntiforgeryFilter.HeaderName;
@@ -28,6 +32,7 @@ await app.InitializeIdentityDatabaseAsync();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // Anonymous by design (docs/security.md): reveals only Healthy / Unhealthy.
 app.MapHealthChecks("/api/health", new HealthCheckOptions
@@ -42,6 +47,7 @@ app.MapHealthChecks("/api/health", new HealthCheckOptions
 }).AllowAnonymous();
 
 app.MapAuthEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
 

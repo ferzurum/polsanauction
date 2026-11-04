@@ -31,7 +31,7 @@ internal static class AuthEndpoints
         {
             var errors = await handler.HandleAsync(request, cancellationToken);
             return errors.Count == 0 ? Results.Accepted() : Problems.Validation(errors);
-        }).AllowAnonymous();
+        }).AllowAnonymous().RequireRateLimiting(RateLimits.Register);
 
         auth.MapPost("/confirm-email", async (ConfirmEmailRequest request, ConfirmEmail handler, CancellationToken cancellationToken) =>
             await handler.HandleAsync(request.AccountId, request.Token, cancellationToken) == ConfirmationOutcome.Confirmed
@@ -41,10 +41,8 @@ internal static class AuthEndpoints
 
         // Same answer whether or not the address exists or is already confirmed (no account discovery).
         auth.MapPost("/resend-confirmation", async (EmailRequest request, ResendConfirmation handler, CancellationToken cancellationToken) =>
-        {
-            await handler.HandleAsync(request.Email, cancellationToken);
-            return Results.Accepted();
-        }).AllowAnonymous();
+            await handler.HandleAsync(request.Email, cancellationToken) ? Results.Accepted() : RateLimits.TooManyAttempts())
+            .AllowAnonymous();
 
         auth.MapPost("/login", async (LoginRequest request, IAccountSignIn signIn, CancellationToken cancellationToken) =>
         {
