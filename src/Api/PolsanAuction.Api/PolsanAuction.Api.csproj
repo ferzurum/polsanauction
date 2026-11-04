@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>PolsanAuction.Api</RootNamespace>
+    <!-- Local secrets (connection string) live in dotnet user-secrets, never in appsettings (docs/security.md). -->
+    <UserSecretsId>polsan-auction-api</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Modules\Catalog\PolsanAuction.Catalog.Infrastructure\PolsanAuction.Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Auction\PolsanAuction.Auction.Infrastructure\PolsanAuction.Auction.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\PolsanAuction.Identity.Infrastructure\PolsanAuction.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Notification\PolsanAuction.Notification.Infrastructure\PolsanAuction.Notification.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Audit\PolsanAuction.Audit.Infrastructure\PolsanAuction.Audit.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

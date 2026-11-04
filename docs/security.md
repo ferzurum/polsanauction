@@ -22,7 +22,9 @@
 
 ## AuthN / AuthZ
 - **Varsayılan: reddet.** Her uç nokta kimlik doğrulama ister; anonim olanlar (giriş, kayıt, doğrulama
-  linki, parola sıfırlama) açıkça işaretlenir.
+  linki, parola sıfırlama, sistem durumu kontrolü) açıkça işaretlenir.
+- **Sistem durumu kontrolü** (`/api/health`, spec 0001) anonimdir ve yalnızca `Healthy` / `Unhealthy`
+  döner; açıklama, istisna, bağlantı bilgisi asla yanıta yazılmaz.
 - **Yol A — yerel kayıt (her zaman açık):** ASP.NET Core Identity. E-posta, Admin'in yönettiği izinli
   alan listesinde olmalı (BR-12); e-posta doğrulaması zorunlu (tek kullanımlık link, 24 saat);
   parola en az 10 karakter; başarısız denemelerde geçici kilit; parola sıfırlama doğrulama linkiyle.

@@ -1,0 +1,16 @@
+# Local development database only (spec 0001). scripts/check never uses it: tests start their own
+# throwaway PostgreSQL container (docs/testing.md, Resource hygiene rule 5).
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: polsan_auction
+      POSTGRES_USER: polsan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env and set POSTGRES_PASSWORD}
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:

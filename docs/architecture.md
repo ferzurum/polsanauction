@@ -20,7 +20,7 @@ src/
   Modules/<Module>/Application use case'ler, arayüzler
   Modules/<Module>/Infrastructure EF Core, e-posta vb.
 web/                           React + TypeScript (Vite)
-tests/                         <Module>.UnitTests, <Module>.IntegrationTests, ArchitectureTests
+tests/                         PolsanAuction.<Module|Api>.UnitTests / .IntegrationTests, PolsanAuction.ArchitectureTests
 ```
 
 ## Modules / components and ownership
@@ -46,7 +46,8 @@ tests/                         <Module>.UnitTests, <Module>.IntegrationTests, Ar
 
 ## Forbidden dependencies (make them testable)
 
-Mimari testlerle (NetArchTest) zorlanır — `tests/ArchitectureTests`:
+Mimari testlerle (ArchUnitNET) zorlanır — `tests/PolsanAuction.ArchitectureTests`; madde 5
+derleme zamanında BannedApiAnalyzers ile; madde 4 ve 7 ilgili özelliklerle eklenir:
 
 1. `*.Domain` projeleri EF Core, ASP.NET Core, SignalR, e-posta veya başka altyapı paketlerine
    referans vermez.
