@@ -13,10 +13,21 @@ builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddNotificationModule();
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<IAccountLinks, AccountLinks>();
+builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = AntiforgeryFilter.HeaderName;
+    options.Cookie.Name = "polsan.csrf";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
 
 var app = builder.Build();
 
 await app.InitializeIdentityDatabaseAsync();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Anonymous by design (docs/security.md): reveals only Healthy / Unhealthy.
 app.MapHealthChecks("/api/health", new HealthCheckOptions

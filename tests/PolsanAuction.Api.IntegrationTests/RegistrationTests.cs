@@ -15,7 +15,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     public async Task Register_AllowedDomain_CreatesPendingBidderAndSendsConfirmation_AC1()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
 
         using var response = await client.PostAsJsonAsync(
@@ -39,7 +39,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     public async Task Register_PasswordIsNotStoredInPlainText_AC1()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
 
         using var response = await AuthApp.RegisterAsync(client, email);
@@ -55,7 +55,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     public async Task Register_DomainNotAllowed_IsRejectedWithoutAccountOrEmail_AC2(string email)
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
 
         using var response = await client.PostAsJsonAsync("/api/auth/register", AuthApp.SignUp(email), Ct);
 
@@ -69,7 +69,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     public async Task Register_ExistingEmail_GivesTheSameResultAndOnlyNotifiesTheOwner_AC3()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
 
         using var first = await AuthApp.RegisterAsync(client, email);
@@ -93,7 +93,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
         string firstName, string lastName, string password, string confirmation, string field, string code)
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
 
         using var response = await client.PostAsJsonAsync(
@@ -112,7 +112,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     public async Task Register_InvalidEmail_ReturnsEmailFieldError_AC4(string email)
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
 
         using var response = await client.PostAsJsonAsync("/api/auth/register", AuthApp.SignUp(email), Ct);
 

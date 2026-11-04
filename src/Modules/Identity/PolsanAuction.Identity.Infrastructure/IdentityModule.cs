@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,12 @@ public static class IdentityModule
 {
     /// <summary>Confirmation links expire after 24 hours (spec 0002, R-2).</summary>
     public static readonly TimeSpan ConfirmationLinkLifetime = TimeSpan.FromHours(24);
+
+    /// <summary>Sign-in lock after five failures (spec 0002, R-6).</summary>
+    public static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
+    /// <summary>The session ends after this much inactivity (spec 0002, R-7).</summary>
+    public static readonly TimeSpan SessionIdleTimeout = TimeSpan.FromHours(8);
 
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
@@ -38,11 +45,35 @@ public static class IdentityModule
                 options.User.RequireUniqueEmail = true;
                 options.User.AllowedUserNameCharacters = string.Empty; // user name = the validated e-mail
                 options.Tokens.EmailConfirmationTokenProvider = ConfirmationTokenProvider.Name;
+
+                // AC-7: the fifth consecutive failure locks the account for 15 minutes.
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = LockoutDuration;
+                options.Lockout.AllowedForNewUsers = true;
+                options.SignIn.RequireConfirmedEmail = true;
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<IdentityDbContext>()
+            .AddSignInManager()
             .AddDefaultTokenProviders()
             .AddTokenProvider<ConfirmationTokenProvider>(ConfirmationTokenProvider.Name);
+
+        // R-7: a session cookie that ends after 8 idle hours; no "remember me". The handler reads the time
+        // from the registered TimeProvider, so tests drive it with a fake clock.
+        services.AddAuthentication(IdentityConstants.ApplicationScheme)
+            .AddCookie(IdentityConstants.ApplicationScheme, cookie =>
+            {
+                cookie.Cookie.Name = "polsan.auth";
+                cookie.Cookie.HttpOnly = true;
+                cookie.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                cookie.Cookie.SameSite = SameSiteMode.Strict;
+                cookie.ExpireTimeSpan = SessionIdleTimeout;
+                cookie.SlidingExpiration = true;
+
+                // An API answers with status codes; the web app decides where to navigate.
+                cookie.Events.OnRedirectToLogin = context => Reject(context.Response, StatusCodes.Status401Unauthorized);
+                cookie.Events.OnRedirectToAccessDenied = context => Reject(context.Response, StatusCodes.Status403Forbidden);
+            });
 
         services.AddSingleton(provider => new ConfirmationTokenCodec(
             provider.GetRequiredService<IDataProtectionProvider>(),
@@ -50,6 +81,7 @@ public static class IdentityModule
             ConfirmationLinkLifetime));
 
         services.AddScoped<IUserAccounts, UserAccounts>();
+        services.AddScoped<IAccountSignIn, AccountSignIn>();
         services.AddScoped<RegisterUser>();
         services.AddScoped<ConfirmEmail>();
         services.AddScoped<ResendConfirmation>();
@@ -82,6 +114,12 @@ public static class IdentityModule
 
         var initialDomains = app.Configuration.GetSection("Identity:InitialAllowedDomains").Get<string[]>() ?? [];
         await AllowedDomainSeeder.SeedAsync(db, initialDomains, cancellationToken);
+    }
+
+    private static Task Reject(HttpResponse response, int statusCode)
+    {
+        response.StatusCode = statusCode;
+        return Task.CompletedTask;
     }
 
     internal static DbContextOptionsBuilder Configure(DbContextOptionsBuilder options, string connectionString) =>

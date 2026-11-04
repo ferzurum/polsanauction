@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -19,6 +20,7 @@ public sealed partial class AuthApp(string connectionString) : WebApplicationFac
 {
     public const string AllowedDomain = "polsanteknoloji.com.tr";
     public const string Password = "on-karakter-parola";
+    public const string AntiforgeryHeader = "X-XSRF-TOKEN";
 
     public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 1, 5, 9, 0, 0, TimeSpan.Zero));
 
@@ -32,6 +34,50 @@ public sealed partial class AuthApp(string connectionString) : WebApplicationFac
 
     public static async Task<HttpResponseMessage> RegisterAsync(HttpClient client, string email) =>
         await client.PostAsJsonAsync("/api/auth/register", SignUp(email), TestContext.Current.CancellationToken);
+
+    /// <summary>
+    /// A cookie-keeping client on https (the auth cookies are Secure) that already carries the anti-forgery header.
+    /// </summary>
+    public async Task<HttpClient> CreateApiClientAsync()
+    {
+        var client = CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), HandleCookies = true });
+        await RefreshAntiforgeryAsync(client);
+        return client;
+    }
+
+    /// <summary>The anti-forgery token is bound to the user, so the SPA (and tests) fetch a new one after sign-in/out.</summary>
+    public static async Task RefreshAntiforgeryAsync(HttpClient client)
+    {
+        using var response = await client.GetAsync(new Uri("/api/auth/antiforgery", UriKind.Relative), TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        client.DefaultRequestHeaders.Remove(AntiforgeryHeader);
+        client.DefaultRequestHeaders.Add(AntiforgeryHeader, body.RootElement.GetProperty("token").GetString());
+    }
+
+    /// <summary>Registers and confirms an account; returns its e-mail.</summary>
+    public async Task<string> CreateConfirmedAccountAsync(HttpClient client, string? email = null)
+    {
+        email ??= NewEmail();
+        using var registered = await RegisterAsync(client, email);
+        registered.EnsureSuccessStatusCode();
+        var (account, token) = LatestConfirmationLink(email);
+        using var confirmed = await client.PostAsJsonAsync("/api/auth/confirm-email", new { accountId = account, token }, TestContext.Current.CancellationToken);
+        confirmed.EnsureSuccessStatusCode();
+        return email;
+    }
+
+    public static Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password = Password) =>
+        client.PostAsJsonAsync("/api/auth/login", new { email, password }, TestContext.Current.CancellationToken);
+
+    public static Task<HttpResponseMessage> MeAsync(HttpClient client) =>
+        client.GetAsync(new Uri("/api/auth/me", UriKind.Relative), TestContext.Current.CancellationToken);
+
+    public static async Task<string?> ProblemCodeAsync(HttpResponseMessage response)
+    {
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        return problem.RootElement.TryGetProperty("code", out var code) ? code.GetString() : null;
+    }
 
     public async Task<T> WithDbAsync<T>(Func<IdentityDbContext, Task<T>> query)
     {

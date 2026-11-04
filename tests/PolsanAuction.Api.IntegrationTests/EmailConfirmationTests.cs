@@ -28,7 +28,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Confirm_ValidLink_ActivatesTheAccount_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, email);
         var (account, token) = app.LatestConfirmationLink(email);
@@ -44,7 +44,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Confirm_LinkOlderThan24Hours_DoesNotActivate_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, email);
         var (account, token) = app.LatestConfirmationLink(email);
@@ -60,7 +60,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Confirm_LinkUsedBefore_IsRejected_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, email);
         var (account, token) = app.LatestConfirmationLink(email);
@@ -76,7 +76,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Confirm_BrokenLink_IsRejected_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, email);
         var (account, token) = app.LatestConfirmationLink(email);
@@ -97,7 +97,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Resend_UnconfirmedAccount_SendsANewWorkingLink_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var email = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, email);
         app.Clock.Advance(TimeSpan.FromHours(30));
@@ -115,7 +115,7 @@ public sealed class EmailConfirmationTests(PostgresFixture postgres)
     public async Task Resend_UnknownOrConfirmedAddress_SendsNothingButAnswersTheSame_AC5()
     {
         await using var app = new AuthApp(postgres.ConnectionString);
-        using var client = app.CreateClient();
+        using var client = await app.CreateApiClientAsync();
         var confirmed = AuthApp.NewEmail();
         using var _ = await AuthApp.RegisterAsync(client, confirmed);
         var (account, token) = app.LatestConfirmationLink(confirmed);
