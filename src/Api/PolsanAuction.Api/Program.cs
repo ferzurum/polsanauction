@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database");
 builder.Services.AddIdentityModule(builder.Configuration);
-builder.Services.AddNotificationModule();
+builder.Services.AddNotificationModule(builder.Environment);
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<IAccountLinks, AccountLinks>();
 builder.Services.AddAuthorization(options =>
