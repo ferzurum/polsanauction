@@ -51,12 +51,21 @@ internal sealed class AccountSignIn(UserManager<ApplicationUser> users, SignInMa
         return new SignInOutcome(SignInStatus.Succeeded);
     }
 
-    /// <summary>A new security stamp invalidates every copy of the session cookie, not just the browser's one (F-3).</summary>
+    /// <summary>
+    /// A new security stamp invalidates every copy of the session cookie, not just the browser's one — on every
+    /// device of the account (review 0002 round 1, F-3). One atomic UPDATE instead of UpdateSecurityStampAsync,
+    /// whose optimistic concurrency check would silently drop the renewal when a failed sign-in for the same
+    /// account changes the concurrency stamp in between (review 0002 round 2, F-1).
+    /// </summary>
     public async Task SignOutAsync(ClaimsPrincipal principal)
     {
-        if (await users.GetUserAsync(principal) is { } user)
+        if (Guid.TryParse(users.GetUserId(principal), out var accountId))
         {
-            await users.UpdateSecurityStampAsync(user);
+            await db.Users
+                .Where(u => u.Id == accountId)
+                .ExecuteUpdateAsync(set => set
+                    .SetProperty(u => u.SecurityStamp, Guid.NewGuid().ToString())
+                    .SetProperty(u => u.ConcurrencyStamp, Guid.NewGuid().ToString()));
         }
 
         await signIn.SignOutAsync();
