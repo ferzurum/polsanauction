@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using PolsanAuction.Identity.Application;
 using PolsanAuction.Identity.Domain;
 
@@ -31,7 +32,19 @@ internal sealed class UserAccounts(IdentityDbContext db, UserManager<Application
         };
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var created = await users.CreateAsync(user, registration.Password);
+        IdentityResult created;
+        try
+        {
+            created = await users.CreateAsync(user, registration.Password);
+        }
+        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        {
+            // Two sign-ups for one address at once both pass Identity's duplicate check; the unique user-name
+            // index stops the second, which answers like any existing address (R-3; review 0002 round 1, F-6).
+            db.Entry(user).State = EntityState.Detached;
+            return null;
+        }
+
         if (!created.Succeeded)
         {
             if (created.Errors.Any(error => error.Code is "DuplicateEmail" or "DuplicateUserName"))
@@ -51,6 +64,19 @@ internal sealed class UserAccounts(IdentityDbContext db, UserManager<Application
 
         await transaction.CommitAsync(cancellationToken);
         return Summarize(user);
+    }
+
+    private static bool IsUniqueViolation(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public async Task<string> CreateConfirmationTokenAsync(Guid accountId, CancellationToken cancellationToken)

@@ -84,6 +84,25 @@ public sealed class RegistrationTests(PostgresFixture postgres)
             notice => Assert.Contains("zaten bir hesabınız var", notice.Subject, StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task Register_SameEmailInParallel_GivesEveryoneTheSameResultAndCreatesOneAccount_AC3()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString);
+        using var client = await app.CreateApiClientAsync();
+        var email = AuthApp.NewEmail();
+
+        // Both pass Identity's duplicate check before either insert lands (review 0002 round 1, F-6).
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => AuthApp.RegisterAsync(client, email)));
+        var statuses = responses.Select(response => response.StatusCode).ToList();
+        foreach (var response in responses)
+        {
+            response.Dispose();
+        }
+
+        Assert.All(statuses, status => Assert.Equal(HttpStatusCode.Accepted, status));
+        Assert.Equal(1, await app.WithDbAsync(db => db.Users.CountAsync(u => u.Email == email, Ct)));
+    }
+
     [Theory]
     [InlineData("", "Yılmaz", "on-karakter", "on-karakter", "firstName", "required")]
     [InlineData("Ayşe", "   ", "on-karakter", "on-karakter", "lastName", "required")]
