@@ -50,6 +50,10 @@
 - **Kilit ve sınırlar:** 5 hatalı giriş → 15 dk kilit (sayaç tek bir atomik `UPDATE` ile artar, paralel
   isteklerde de); giriş kaynak başına dakikada 30; kayıt kaynak başına saatte 10; doğrulama yeniden
   gönderimi adres başına dakikada 1 (adres kayıtlı olmasa da) ve kaynak başına dakikada 10 → 429 `rate_limited`.
+- **Kabul edilen riskler (spec 0002, review round 1 F-14):** 5 hatalı denemeden sonra "kilitli" yanıtı yalnızca
+  kayıtlı adreslerde gelir (R-6 kilidi göstermeyi ister, R-5 hesap tespitini yasaklar — R-6 öncelikli); aynı
+  nedenle herkes bir başkasının hesabını 15 dakika kilitleyebilir. Kurum içi ağ ve giriş hız sınırı bu riskleri
+  sınırlar; AD girişi (spec 0007) parola denemesini ortadan kaldırır.
 - **Doğrulama bağlantısı:** Data Protection ile şifreli/imzalı, 24 saat, tek kullanımlık (`ConfirmationTokenCodec`).
 - **Açık (dağıtım spec'i):** Data Protection anahtarlarının kalıcı saklanması; ters proxy arkasında gerçek
   istemci IP'si için `ForwardedHeaders`.

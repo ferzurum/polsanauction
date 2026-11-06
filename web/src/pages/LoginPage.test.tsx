@@ -67,7 +67,9 @@ describe('LoginPage', () => {
     })
     renderAt('/giris')
     signIn()
-    expect(await screen.findByRole('alert')).toHaveTextContent("Hesabınız 14:35'e kadar kilitli.")
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi. Kilit açılış saati: 14:35.',
+    )
   })
 
   it('shows a server error', async () => {

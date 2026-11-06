@@ -37,7 +37,10 @@ export function fieldError(field: string, codes: string[] | undefined): string |
   return code === undefined ? undefined : (fieldMessages[field]?.[code] ?? messages.serverError)
 }
 
-/** "Hesabınız 14:35'e kadar kilitli." — shown in Istanbul time (docs/conventions.md, Data rules). */
+/**
+ * "… Kilit açılış saati: 14:35." — shown in Istanbul time (docs/conventions.md, Data rules). No suffix after the
+ * time: Turkish suffixes follow the spoken number ("14:30'da", "14:35'te"), so a fixed one is often wrong.
+ */
 export function lockedMessage(lockedUntil: string | undefined): string {
   if (lockedUntil === undefined) {
     return 'Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi.'
@@ -47,7 +50,7 @@ export function lockedMessage(lockedUntil: string | undefined): string {
     minute: '2-digit',
     timeZone: 'Europe/Istanbul',
   }).format(new Date(lockedUntil))
-  return `Çok fazla hatalı deneme. Hesabınız ${time}'e kadar kilitli.`
+  return `Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi. Kilit açılış saati: ${time}.`
 }
 
 export function isRateLimited(problem: ApiProblem) {

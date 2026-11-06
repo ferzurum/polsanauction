@@ -23,6 +23,8 @@ ASP.NET antiforgery token'ı (`X-XSRF-TOKEN` başlığı) ile yapılır. JWT kul
 - **Maliyet:** Çerez + SPA = CSRF koruması zorunlu; istemci giriş/çıkıştan sonra antiforgery token'ını yeniler.
 - **Maliyet:** Data Protection anahtarlarının üretimde kalıcı bir yerde saklanması gerekir; aksi hâlde yeniden
   başlatmada oturumlar ve bekleyen doğrulama bağlantıları geçersizleşir — dağıtım spec'inin konusu.
+- **Kabul edilen risk:** kilit yanıtı kayıtlı adresi açığa vurur ve başkasının hesabını 15 dakika kilitlemeye
+  izin verir (R-6 ile R-5'in gerilimi; `docs/security.md`, Kabul edilen riskler).
 - `PasswordSignInAsync` kullanılmaz: doğrulanmamış hesabı parola doğru olmasa da açığa vurur;
   `AccountSignIn` sırayı (kilit → parola → doğrulama) kendisi kurar.
 
