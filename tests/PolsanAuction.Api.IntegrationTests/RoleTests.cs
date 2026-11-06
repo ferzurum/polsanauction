@@ -1,5 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using PolsanAuction.Identity.Infrastructure;
 
 namespace PolsanAuction.Api.IntegrationTests;
 
@@ -90,5 +93,29 @@ public sealed class RoleTests(PostgresFixture postgres)
 
         Assert.Contains("Admin", await RolesAsync(adminClient));
         Assert.Equal(HttpStatusCode.OK, (await AdminAreaAsync(adminClient)).StatusCode);
+    }
+
+    [Fact]
+    public async Task RoleGrantedDuringASession_ReachesItWithinTheCheckInterval_WithoutSigningInAgain_AC9()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString);
+        using var client = await app.CreateApiClientAsync();
+        var email = await app.CreateConfirmedAccountAsync(client);
+        using var _ = await AuthApp.LoginAsync(client, email);
+
+        // The same call the initial-admin check makes at startup (InitialAdminSeeder).
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await users.FindByEmailAsync(email);
+            Assert.True((await users.AddToRoleAsync(user!, "Admin")).Succeeded);
+        }
+
+        var withinInterval = (await AdminAreaAsync(client)).StatusCode;
+        app.Clock.Advance(IdentityModule.SecurityStampValidationInterval + TimeSpan.FromSeconds(1));
+
+        Assert.Equal(HttpStatusCode.Forbidden, withinInterval); // the cookie still carries the old roles
+        Assert.Equal(HttpStatusCode.OK, (await AdminAreaAsync(client)).StatusCode);
+        Assert.Equal(["Admin", "Bidder"], await RolesAsync(client));
     }
 }
