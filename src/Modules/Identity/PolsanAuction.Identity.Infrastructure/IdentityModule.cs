@@ -26,6 +26,12 @@ public static class IdentityModule
     /// <summary>The session ends after this much inactivity (spec 0002, R-7).</summary>
     public static readonly TimeSpan SessionIdleTimeout = TimeSpan.FromHours(8);
 
+    /// <summary>
+    /// How often a session cookie is checked against the account's security stamp: after sign-out (a new stamp)
+    /// a copied cookie stops working within this time, and role changes reach the session (review 0002 round 1, F-3).
+    /// </summary>
+    public static readonly TimeSpan SecurityStampValidationInterval = TimeSpan.FromMinutes(1);
+
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
         services.TryAddSingleton(TimeProvider.System);
@@ -74,10 +80,27 @@ public static class IdentityModule
                 cookie.ExpireTimeSpan = SessionIdleTimeout;
                 cookie.SlidingExpiration = true;
 
+                // AddIdentityCore does not wire the security stamp check that AddIdentity would (docs/conventions.md).
+                cookie.Events.OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync;
+
                 // An API answers with status codes; the web app decides where to navigate.
                 cookie.Events.OnRedirectToLogin = context => Reject(context.Response, StatusCodes.Status401Unauthorized);
                 cookie.Events.OnRedirectToAccessDenied = context => Reject(context.Response, StatusCodes.Status403Forbidden);
+            })
+            .AddCookie(IdentityConstants.TwoFactorRememberMeScheme, cookie =>
+            {
+                // Never issued (no two-factor sign-in), but the security stamp check signs out of this scheme
+                // when it rejects a cookie and fails with 500 if it is not registered.
+                cookie.Cookie.HttpOnly = true;
+                cookie.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                cookie.Cookie.SameSite = SameSiteMode.Strict;
             });
+
+        services.AddOptions<SecurityStampValidatorOptions>().Configure<TimeProvider>((options, clock) =>
+        {
+            options.ValidationInterval = SecurityStampValidationInterval;
+            options.TimeProvider = clock;
+        });
 
         services.AddSingleton(provider => new ConfirmationTokenCodec(
             provider.GetRequiredService<IDataProtectionProvider>(),

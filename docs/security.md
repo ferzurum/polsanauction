@@ -38,6 +38,9 @@
 - **Oturum (spec 0002, ADR 0001):** ASP.NET Core Identity + `polsan.auth` çerezi — `HttpOnly`, `Secure`,
   `SameSite=Strict`, 8 saat hareketsizlikte biter (kayan), "beni hatırla" yok. API yönlendirme yapmaz:
   oturumsuz → 401, yetkisiz → 403.
+- **Oturum geçersizleştirme:** çıkış hesabın güvenlik damgasını yeniler; çerez dakikada bir damgaya karşı
+  doğrulanır, böylece kopyalanmış bir çerez çıkıştan sonra en geç 1 dakikada geçersiz olur ve rol
+  değişikliği (damgayı yeniler) oturumu yeniden girişe zorlar.
 - **CSRF:** her `POST` `X-XSRF-TOKEN` başlığında antiforgery token'ı taşır (`GET /api/auth/antiforgery`);
   token kullanıcıya bağlıdır, istemci giriş/çıkıştan sonra yeniler. Eksik/yanlış → 400 `csrf.invalid`.
 - **Anonim auth uç noktaları:** `GET /api/auth/antiforgery`, `POST /api/auth/register | confirm-email |

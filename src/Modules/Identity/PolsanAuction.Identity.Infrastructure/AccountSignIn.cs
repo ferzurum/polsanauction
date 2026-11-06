@@ -45,7 +45,16 @@ internal sealed class AccountSignIn(UserManager<ApplicationUser> users, SignInMa
         return new SignInOutcome(SignInStatus.Succeeded);
     }
 
-    public Task SignOutAsync() => signIn.SignOutAsync();
+    /// <summary>A new security stamp invalidates every copy of the session cookie, not just the browser's one (F-3).</summary>
+    public async Task SignOutAsync(ClaimsPrincipal principal)
+    {
+        if (await users.GetUserAsync(principal) is { } user)
+        {
+            await users.UpdateSecurityStampAsync(user);
+        }
+
+        await signIn.SignOutAsync();
+    }
 
     public async Task<CurrentAccount?> GetCurrentAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {

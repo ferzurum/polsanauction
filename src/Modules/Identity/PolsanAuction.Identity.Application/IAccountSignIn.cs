@@ -25,7 +25,7 @@ public interface IAccountSignIn
 {
     Task<SignInOutcome> SignInAsync(string? email, string? password, CancellationToken cancellationToken);
 
-    Task SignOutAsync();
+    Task SignOutAsync(ClaimsPrincipal principal);
 
     Task<CurrentAccount?> GetCurrentAsync(ClaimsPrincipal principal, CancellationToken cancellationToken);
 }

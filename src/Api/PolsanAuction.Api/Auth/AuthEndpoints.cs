@@ -59,9 +59,9 @@ internal static class AuthEndpoints
             };
         }).AllowAnonymous().RequireRateLimiting(RateLimits.Login);
 
-        auth.MapPost("/logout", async (IAccountSignIn signIn) =>
+        auth.MapPost("/logout", async (HttpContext context, IAccountSignIn signIn) =>
         {
-            await signIn.SignOutAsync();
+            await signIn.SignOutAsync(context.User);
             return Results.NoContent();
         }).RequireAuthorization();
 

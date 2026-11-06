@@ -61,6 +61,7 @@
 - EF Core sağlayıcının `DbException`'ını `InvalidOperationException` ("transient failure") içine sarar — "DB erişilemez" yakalarken istisna zincirine bakılır — from spec 0002, adım 6.
 - Kimlik çerezleri `Secure` — entegrasyon testlerinde istemci `https://localhost` taban adresiyle açılır (`AuthApp.CreateApiClientAsync`) — from spec 0002, adım 5.
 - Identity `UserManager.AccessFailedAsync`/`UpdateAsync` eşzamanlılık çakışmasını istisna değil `IdentityResult` (`ConcurrencyFailure`) olarak döndürür; sonuç kontrol edilmezse paralel isteklerde kilit sayacı kaybolur — sayaç tek bir atomik `ExecuteUpdateAsync` ile artırılır (`AccountSignIn`) — from spec 0002, review round 1 F-1 (A-3).
+- `AddIdentityCore` + elle `AddCookie` kurulumunda güvenlik damgası doğrulanmaz — `OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync` elle bağlanır; reddedince `Identity.TwoFactorRememberMe` şemasından da çıkış yapıldığı için o şema da kayıtlı olmalı (yoksa 500) — from spec 0002, review round 1 F-3 (A-3).
 - Windows'tan commit'lenen script çalıştırılabilir bitini kaybeder (`100644`), Linux CI `Permission denied` verir — yeni script'te `git update-index --chmod=+x -- <yol>` ve `git ls-files -s` ile `100755` doğrulanır — from spec 0001, CI (A-6).
 
 ## Database migrations

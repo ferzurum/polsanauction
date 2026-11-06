@@ -34,6 +34,35 @@ public sealed class SessionTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Logout_InvalidatesACopiedSessionCookie_AC8()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString);
+        using var client = await app.CreateApiClientAsync();
+        var email = await app.CreateConfirmedAccountAsync(client);
+        using var login = await AuthApp.LoginAsync(client, email);
+        var copied = login.Headers.GetValues("Set-Cookie").Select(header => header.Split(';')[0]).Single(cookie => cookie.StartsWith("polsan.auth=", StringComparison.Ordinal));
+        await AuthApp.RefreshAntiforgeryAsync(client);
+
+        // Someone who copied the cookie replays it from another client.
+        using var stranger = app.CreateClient(new() { BaseAddress = new Uri("https://localhost"), HandleCookies = false });
+        async Task<HttpStatusCode> ReplayAsync()
+        {
+            using var replay = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+            replay.Headers.Add("Cookie", copied);
+            using var response = await stranger.SendAsync(replay, TestContext.Current.CancellationToken);
+            return response.StatusCode;
+        }
+
+        var beforeLogout = await ReplayAsync();
+        using var logout = await client.PostAsync(new Uri("/api/auth/logout", UriKind.Relative), null, TestContext.Current.CancellationToken);
+        app.Clock.Advance(TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(1)); // the security stamp check interval
+
+        Assert.Equal(HttpStatusCode.OK, beforeLogout);
+        Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, await ReplayAsync());
+    }
+
+    [Fact]
     public async Task Session_IdleForMoreThan8Hours_IsNoLongerValid_AC8()
     {
         var (app, client) = await SignedInAsync();
