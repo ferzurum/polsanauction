@@ -29,7 +29,7 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetRoles",
+                name: "roles",
                 schema: "identity",
                 columns: table => new
                 {
@@ -40,11 +40,11 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_roles", x => x.id);
+                    table.PrimaryKey("pk_roles", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "users",
                 schema: "identity",
                 columns: table => new
                 {
@@ -68,11 +68,11 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_users", x => x.id);
+                    table.PrimaryKey("pk_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
+                name: "role_claims",
                 schema: "identity",
                 columns: table => new
                 {
@@ -84,18 +84,18 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_role_claims", x => x.id);
+                    table.PrimaryKey("pk_role_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_asp_net_role_claims_asp_net_roles_role_id",
+                        name: "fk_role_claims_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetRoles",
+                        principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
+                name: "user_claims",
                 schema: "identity",
                 columns: table => new
                 {
@@ -107,18 +107,18 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_claims", x => x.id);
+                    table.PrimaryKey("pk_user_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_asp_net_user_claims_asp_net_users_user_id",
+                        name: "fk_user_claims_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetUsers",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
+                name: "user_logins",
                 schema: "identity",
                 columns: table => new
                 {
@@ -129,18 +129,18 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_logins", x => new { x.login_provider, x.provider_key });
+                    table.PrimaryKey("pk_user_logins", x => new { x.login_provider, x.provider_key });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_logins_asp_net_users_user_id",
+                        name: "fk_user_logins_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetUsers",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
+                name: "user_roles",
                 schema: "identity",
                 columns: table => new
                 {
@@ -149,25 +149,25 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_roles", x => new { x.user_id, x.role_id });
+                    table.PrimaryKey("pk_user_roles", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_roles_asp_net_roles_role_id",
+                        name: "fk_user_roles_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetRoles",
+                        principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_asp_net_user_roles_asp_net_users_user_id",
+                        name: "fk_user_roles_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetUsers",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
+                name: "user_tokens",
                 schema: "identity",
                 columns: table => new
                 {
@@ -178,12 +178,12 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_tokens", x => new { x.user_id, x.login_provider, x.name });
+                    table.PrimaryKey("pk_user_tokens", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_tokens_asp_net_users_user_id",
+                        name: "fk_user_tokens_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
-                        principalTable: "AspNetUsers",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -196,46 +196,46 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_role_claims_role_id",
+                name: "ix_role_claims_role_id",
                 schema: "identity",
-                table: "AspNetRoleClaims",
+                table: "role_claims",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
-                name: "RoleNameIndex",
+                name: "ix_roles_normalized_name",
                 schema: "identity",
-                table: "AspNetRoles",
+                table: "roles",
                 column: "normalized_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_claims_user_id",
+                name: "ix_user_claims_user_id",
                 schema: "identity",
-                table: "AspNetUserClaims",
+                table: "user_claims",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_logins_user_id",
+                name: "ix_user_logins_user_id",
                 schema: "identity",
-                table: "AspNetUserLogins",
+                table: "user_logins",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_roles_role_id",
+                name: "ix_user_roles_role_id",
                 schema: "identity",
-                table: "AspNetUserRoles",
+                table: "user_roles",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
-                name: "EmailIndex",
+                name: "ix_users_normalized_email",
                 schema: "identity",
-                table: "AspNetUsers",
+                table: "users",
                 column: "normalized_email");
 
             migrationBuilder.CreateIndex(
-                name: "UserNameIndex",
+                name: "ix_users_normalized_user_name",
                 schema: "identity",
-                table: "AspNetUsers",
+                table: "users",
                 column: "normalized_user_name",
                 unique: true);
         }
@@ -248,31 +248,31 @@ namespace PolsanAuction.Identity.Infrastructure.Migrations
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoleClaims",
+                name: "role_claims",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserClaims",
+                name: "user_claims",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserLogins",
+                name: "user_logins",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserRoles",
+                name: "user_roles",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserTokens",
+                name: "user_tokens",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles",
+                name: "roles",
                 schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers",
+                name: "users",
                 schema: "identity");
         }
     }
