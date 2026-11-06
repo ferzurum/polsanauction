@@ -126,9 +126,9 @@ public sealed class RegistrationTests(PostgresFixture postgres)
     }
 
     [Theory]
-    [InlineData("ayse@")]
-    [InlineData("")]
-    public async Task Register_InvalidEmail_ReturnsEmailFieldError_AC4(string email)
+    [InlineData("ayse@", "email.invalid")]
+    [InlineData("", "required")]
+    public async Task Register_InvalidEmail_ReturnsEmailFieldError_AC4(string email, string code)
     {
         await using var app = new AuthApp(postgres.ConnectionString);
         using var client = await app.CreateApiClientAsync();
@@ -136,7 +136,7 @@ public sealed class RegistrationTests(PostgresFixture postgres)
         using var response = await client.PostAsJsonAsync("/api/auth/register", AuthApp.SignUp(email), Ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Single(await FieldErrorsAsync(response, "email"));
+        Assert.Equal([code], await FieldErrorsAsync(response, "email"));
     }
 
     private static async Task<string[]> FieldErrorsAsync(HttpResponseMessage response, string field)
