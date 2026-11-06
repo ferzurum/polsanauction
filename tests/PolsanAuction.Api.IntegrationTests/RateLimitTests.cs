@@ -70,6 +70,24 @@ public sealed class RateLimitTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Resend_FromOneSourceOverTheLimit_IsLimitedEvenForNewAddresses()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString, new Dictionary<string, string> { ["Identity:ResendAttemptsPerMinute"] = "3" });
+        using var client = await app.CreateApiClientAsync();
+
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            using var allowed = await ResendAsync(client, AuthApp.NewEmail());
+            Assert.Equal(HttpStatusCode.Accepted, allowed.StatusCode);
+        }
+
+        using var fourth = await ResendAsync(client, AuthApp.NewEmail());
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, fourth.StatusCode);
+        Assert.Equal("rate_limited", await AuthApp.ProblemCodeAsync(fourth));
+    }
+
+    [Fact]
     public async Task Login_OverTheLimitWithinAMinute_IsLimited()
     {
         await using var app = new AuthApp(postgres.ConnectionString, new Dictionary<string, string> { ["Identity:LoginAttemptsPerMinute"] = "3" });

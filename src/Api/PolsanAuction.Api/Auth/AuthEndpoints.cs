@@ -42,7 +42,7 @@ internal static class AuthEndpoints
         // Same answer whether or not the address exists or is already confirmed (no account discovery).
         auth.MapPost("/resend-confirmation", async (EmailRequest request, ResendConfirmation handler, CancellationToken cancellationToken) =>
             await handler.HandleAsync(request.Email, cancellationToken) ? Results.Accepted() : RateLimits.TooManyAttempts())
-            .AllowAnonymous();
+            .AllowAnonymous().RequireRateLimiting(RateLimits.Resend);
 
         auth.MapPost("/login", async (LoginRequest request, IAccountSignIn signIn, CancellationToken cancellationToken) =>
         {

@@ -16,6 +16,9 @@ public sealed class IdentitySettings
     /// <summary>Sign-in attempts per source per minute (docs/security.md; review 0002 round 1, F-1).</summary>
     public int LoginAttemptsPerMinute { get; set; } = 30;
 
+    /// <summary>Confirmation resend requests per source per minute, over all addresses (review 0002 round 1, F-9).</summary>
+    public int ResendAttemptsPerMinute { get; set; } = 10;
+
     /// <summary>Minimum time between two confirmation resends to one address (spec 0002, AC-6).</summary>
     public TimeSpan ResendInterval { get; set; } = TimeSpan.FromMinutes(1);
 }
