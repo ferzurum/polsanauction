@@ -79,6 +79,9 @@ internal sealed class UserAccounts(IdentityDbContext db, UserManager<Application
         return false;
     }
 
+    public void HashPasswordForTimingOnly(string password) =>
+        _ = users.PasswordHasher.HashPassword(new ApplicationUser(), password);
+
     public async Task<string> CreateConfirmationTokenAsync(Guid accountId, CancellationToken cancellationToken)
     {
         var user = await users.FindByIdAsync(accountId.ToString())

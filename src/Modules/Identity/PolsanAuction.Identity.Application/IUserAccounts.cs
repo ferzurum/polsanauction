@@ -23,6 +23,12 @@ public interface IUserAccounts
     /// <summary>Creates an unconfirmed Bidder account; returns null when the e-mail was taken concurrently.</summary>
     Task<AccountSummary?> CreatePendingAsync(Registration registration, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Hashes the password and throws the hash away, so a sign-up for an existing address takes as long as one that
+    /// creates an account and timing does not reveal who is registered (R-3; review 0002 round 1, F-8).
+    /// </summary>
+    void HashPasswordForTimingOnly(string password);
+
     /// <summary>A single-purpose, 24-hour confirmation token for the account.</summary>
     Task<string> CreateConfirmationTokenAsync(Guid accountId, CancellationToken cancellationToken);
 

@@ -13,12 +13,18 @@ namespace PolsanAuction.Identity.Infrastructure;
 internal sealed class AccountSignIn(UserManager<ApplicationUser> users, SignInManager<ApplicationUser> signIn, IdentityDbContext db)
     : IAccountSignIn
 {
+    // Same hasher settings for every instance; computing it twice under a race is harmless.
+    private static string? _unknownAccountHash;
+
     public async Task<SignInOutcome> SignInAsync(string? email, string? password, CancellationToken cancellationToken)
     {
         var address = EmailAddress.TryCreate(email);
         var user = address is null ? null : await users.FindByEmailAsync(address.Value);
         if (user is null)
         {
+            // Check the password against a throwaway hash anyway, so an unknown e-mail answers as slowly as a
+            // wrong password and timing does not reveal who is registered (R-5; review 0002 round 1, F-8).
+            _ = users.PasswordHasher.VerifyHashedPassword(new ApplicationUser(), UnknownAccountHash(), password ?? string.Empty);
             return new SignInOutcome(SignInStatus.InvalidCredentials);
         }
 
@@ -97,6 +103,9 @@ internal sealed class AccountSignIn(UserManager<ApplicationUser> users, SignInMa
             .SingleAsync(cancellationToken);
         return current > TimeProvider.System.GetUtcNow() ? current : null;
     }
+
+    private string UnknownAccountHash() =>
+        _unknownAccountHash ??= users.PasswordHasher.HashPassword(new ApplicationUser(), Guid.NewGuid().ToString());
 
     private static SignInOutcome Locked(ApplicationUser user) => new(SignInStatus.LockedOut, user.LockoutEnd);
 }

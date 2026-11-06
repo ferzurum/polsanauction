@@ -24,6 +24,11 @@ public sealed class RegisterUser(IUserAccounts accounts, IEmailSender email, IAc
         }
 
         var existing = await accounts.FindByEmailAsync(registration.Email, cancellationToken);
+        if (existing is not null)
+        {
+            accounts.HashPasswordForTimingOnly(registration.Password);
+        }
+
         var created = existing is null ? await accounts.CreatePendingAsync(registration, cancellationToken) : null;
 
         if (created is null)

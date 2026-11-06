@@ -51,6 +51,24 @@ public sealed class RegisterUserTests
     }
 
     [Fact]
+    public async Task HandleAsync_ExistingAddress_StillSpendsAPasswordHash_SoTimingRevealsNothing()
+    {
+        _accounts.Existing = new AccountSummary(Guid.CreateVersion7(), "Ayşe", EmailAddress.TryCreate("ayse@polsanteknoloji.com.tr")!, true);
+
+        await _handler.HandleAsync(Request(), CancellationToken.None);
+
+        Assert.Equal([Password], _accounts.TimingOnlyHashes);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NewAddress_HashesOnlyOnce_WhileCreatingTheAccount()
+    {
+        await _handler.HandleAsync(Request(), CancellationToken.None);
+
+        Assert.Empty(_accounts.TimingOnlyHashes);
+    }
+
+    [Fact]
     public async Task HandleAsync_AddressTakenConcurrently_AnswersAsForAnExistingAccount_AC3()
     {
         _accounts.LoseCreationRace = true;
@@ -68,6 +86,10 @@ public sealed class RegisterUserTests
         public bool LoseCreationRace { get; set; }
 
         public List<Registration> Created { get; } = [];
+
+        public List<string> TimingOnlyHashes { get; } = [];
+
+        public void HashPasswordForTimingOnly(string password) => TimingOnlyHashes.Add(password);
 
         public Task<IReadOnlyList<string>> GetAllowedDomainsAsync(CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<string>>(["polsanteknoloji.com.tr"]);
