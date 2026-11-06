@@ -55,6 +55,7 @@ describe('App — üst çubuk', () => {
     stubApi({ 'GET /api/auth/me': account(['Bidder']) })
     renderAt('/')
     expect(await screen.findByText('Ayşe Yılmaz')).toBeInTheDocument()
+    expect(screen.getByText('(Personel)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Çıkış' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Yönetim' })).not.toBeInTheDocument()
   })
@@ -63,6 +64,7 @@ describe('App — üst çubuk', () => {
     stubApi({ 'GET /api/auth/me': account(['Admin', 'Bidder']) })
     renderAt('/')
     expect(await screen.findByRole('link', { name: 'Yönetim' })).toHaveAttribute('href', '/yonetim')
+    expect(screen.getByText('(Admin)')).toBeInTheDocument()
   })
 
   it('signs out and goes to the sign-in page', async () => {

@@ -1,7 +1,10 @@
 import { Link, useNavigate } from 'react-router'
 import { isAdmin, useAuth } from '../auth/context.ts'
 
-/** Top bar: the signed-in person, the admin link for admins, sign-out (spec 0002, User experience). */
+/** Shown role: the highest one the account holds, in domain language (docs/domain.md). */
+const roleLabel = (roles: string[]) => (roles.includes('Admin') ? 'Admin' : 'Personel')
+
+/** Top bar: the signed-in person and role, the admin link for admins, sign-out (spec 0002, User experience). */
 export function Header() {
   const { account, signOut } = useAuth()
   const navigate = useNavigate()
@@ -27,6 +30,7 @@ export function Header() {
             <span>
               {account.firstName} {account.lastName}
             </span>{' '}
+            <span>({roleLabel(account.roles)})</span>{' '}
             {isAdmin(account) && <Link to="/yonetim">Yönetim</Link>}{' '}
             <button type="button" onClick={() => void handleSignOut()}>
               Çıkış
