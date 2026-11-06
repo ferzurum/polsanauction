@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { vi } from 'vitest'
@@ -60,10 +61,12 @@ export function stubApi(routes: Record<string, Handler | Response> = {}) {
 /** A promise that never settles: keeps a request "in flight" to observe loading states. */
 export const pending = () => new Promise<Response>(() => {})
 
-export function renderAt(path: string) {
-  return render(
+/** Renders the app at a path; `strict` mirrors main.tsx, where development runs every effect twice. */
+export function renderAt(path: string, { strict = false }: { strict?: boolean } = {}) {
+  const app = (
     <MemoryRouter initialEntries={[path]}>
       <App />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
+  return render(strict ? <StrictMode>{app}</StrictMode> : app)
 }

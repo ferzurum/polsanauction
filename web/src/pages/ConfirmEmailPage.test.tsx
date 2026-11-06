@@ -27,6 +27,19 @@ describe('ConfirmEmailPage', () => {
     })
   })
 
+  it('sends a single-use link only once, even when StrictMode runs the effect twice', async () => {
+    let sent = 0
+    const calls = stubApi({
+      'POST /api/auth/confirm-email': () =>
+        ++sent === 1 ? new Response(null, { status: 204 }) : problem(400, 'confirmation.invalid'),
+    })
+    renderAt(link, { strict: true })
+    expect(
+      await screen.findByText('E-postanız doğrulandı, giriş yapabilirsiniz.'),
+    ).toBeInTheDocument()
+    expect(calls.filter((call) => call.path === '/api/auth/confirm-email')).toHaveLength(1)
+  })
+
   it('explains an invalid, expired or used link and offers to resend', async () => {
     const calls = stubApi({
       'POST /api/auth/confirm-email': problem(400, 'confirmation.invalid'),
