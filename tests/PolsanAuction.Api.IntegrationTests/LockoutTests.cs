@@ -66,6 +66,28 @@ public sealed class LockoutTests(PostgresFixture postgres)
         Assert.Equal(HttpStatusCode.NoContent, afterExpiry.StatusCode);
     }
 
+    [Fact]
+    public async Task ParallelFailures_StillLockTheAccount_AC7()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString);
+        using var client = await app.CreateApiClientAsync();
+        var email = await app.CreateConfirmedAccountAsync(client);
+
+        // Twenty wrong passwords at once must not slip past the five-failure lock (review 0002 round 1, F-1).
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => AuthApp.LoginAsync(client, email, "yanlis-parola-1")));
+        foreach (var attempt in attempts)
+        {
+            attempt.Dispose();
+        }
+
+        using var rightPassword = await AuthApp.LoginAsync(client, email);
+
+        Assert.Equal(HttpStatusCode.Forbidden, rightPassword.StatusCode);
+        Assert.Equal("auth.locked_out", await AuthApp.ProblemCodeAsync(rightPassword));
+        var lockedUntil = await app.WithDbAsync(db => db.Users.Where(u => u.Email == email).Select(u => u.LockoutEnd).SingleAsync(Ct));
+        Assert.True(lockedUntil > TimeProvider.System.GetUtcNow());
+    }
+
     private static async Task<DateTimeOffset> LockedUntilAsync(HttpResponseMessage response)
     {
         using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(Ct));

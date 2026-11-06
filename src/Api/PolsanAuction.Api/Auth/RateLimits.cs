@@ -5,10 +5,14 @@ using PolsanAuction.Identity.Infrastructure;
 
 namespace PolsanAuction.Api.Auth;
 
-/// <summary>Sign-up attempts per source per hour (spec 0002, AC-6). Over the limit: 429 with code <c>rate_limited</c>.</summary>
+/// <summary>
+/// Sign-up attempts per source per hour (spec 0002, AC-6) and sign-in attempts per source per minute
+/// (docs/security.md). Over the limit: 429 with code <c>rate_limited</c>.
+/// </summary>
 internal static class RateLimits
 {
     public const string Register = "register";
+    public const string Login = "login";
     public const string Code = "rate_limited";
 
     public static IServiceCollection AddAuthRateLimits(this IServiceCollection services) =>
@@ -21,6 +25,14 @@ internal static class RateLimits
                 {
                     PermitLimit = context.RequestServices.GetRequiredService<IOptions<IdentitySettings>>().Value.RegisterAttemptsPerHour,
                     Window = TimeSpan.FromHours(1),
+                    QueueLimit = 0,
+                }));
+            options.AddPolicy(Login, context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = context.RequestServices.GetRequiredService<IOptions<IdentitySettings>>().Value.LoginAttemptsPerMinute,
+                    Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }));
             options.OnRejected = (context, cancellationToken) =>

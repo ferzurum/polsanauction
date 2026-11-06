@@ -44,7 +44,8 @@
   resend-confirmation | login`. `logout`, `me` ve `/api/admin` oturum ister; `/api/admin` `Admin` rolü ister.
 - **Hesap tespitini önleme:** kayıt (yeni/var olan adres), yeniden gönderim (bilinmeyen/doğrulanmış adres) ve
   giriş (yanlış parola/bilinmeyen e-posta) aynı yanıtı verir; "doğrulanmamış" yalnızca parola doğruysa söylenir.
-- **Kilit ve sınırlar:** 5 hatalı giriş → 15 dk kilit; kayıt kaynak başına saatte 10; doğrulama yeniden
+- **Kilit ve sınırlar:** 5 hatalı giriş → 15 dk kilit (sayaç tek bir atomik `UPDATE` ile artar, paralel
+  isteklerde de); giriş kaynak başına dakikada 30; kayıt kaynak başına saatte 10; doğrulama yeniden
   gönderimi adres başına dakikada 1 (adres kayıtlı olmasa da) → 429 `rate_limited`.
 - **Doğrulama bağlantısı:** Data Protection ile şifreli/imzalı, 24 saat, tek kullanımlık (`ConfirmationTokenCodec`).
 - **Açık (dağıtım spec'i):** Data Protection anahtarlarının kalıcı saklanması; ters proxy arkasında gerçek

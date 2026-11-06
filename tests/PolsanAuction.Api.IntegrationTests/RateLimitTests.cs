@@ -3,7 +3,10 @@ using System.Net.Http.Json;
 
 namespace PolsanAuction.Api.IntegrationTests;
 
-/// <summary>AC-6: one resend per address per minute, ten sign-up attempts per source per hour.</summary>
+/// <summary>
+/// AC-6: one resend per address per minute, ten sign-up attempts per source per hour; sign-in attempts per
+/// source per minute (docs/security.md).
+/// </summary>
 [Trait("Category", "Integration")]
 [Collection(PostgresTestGroup.Name)]
 public sealed class RateLimitTests(PostgresFixture postgres)
@@ -64,5 +67,24 @@ public sealed class RateLimitTests(PostgresFixture postgres)
 
         Assert.Equal(HttpStatusCode.TooManyRequests, eleventh.StatusCode);
         Assert.Equal("rate_limited", await AuthApp.ProblemCodeAsync(eleventh));
+    }
+
+    [Fact]
+    public async Task Login_OverTheLimitWithinAMinute_IsLimited()
+    {
+        await using var app = new AuthApp(postgres.ConnectionString, new Dictionary<string, string> { ["Identity:LoginAttemptsPerMinute"] = "3" });
+        using var client = await app.CreateApiClientAsync();
+        var email = AuthApp.NewEmail();
+
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            using var allowed = await AuthApp.LoginAsync(client, email);
+            Assert.Equal(HttpStatusCode.Unauthorized, allowed.StatusCode);
+        }
+
+        using var fourth = await AuthApp.LoginAsync(client, email);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, fourth.StatusCode);
+        Assert.Equal("rate_limited", await AuthApp.ProblemCodeAsync(fourth));
     }
 }

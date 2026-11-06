@@ -57,7 +57,7 @@ internal static class AuthEndpoints
                     extensions: new Dictionary<string, object?> { ["code"] = LockedOut, ["lockedUntil"] = outcome.LockedUntil }),
                 _ => Problems.Code(StatusCodes.Status401Unauthorized, InvalidCredentials, "E-mail or password is incorrect."),
             };
-        }).AllowAnonymous();
+        }).AllowAnonymous().RequireRateLimiting(RateLimits.Login);
 
         auth.MapPost("/logout", async (IAccountSignIn signIn) =>
         {

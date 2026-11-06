@@ -60,6 +60,7 @@
 - ASP.NET Core Identity'nin doğrulama token'ı ve kilidi `TimeProvider` kullanmaz — süre testleri için token `ConfirmationTokenCodec` ile üretilir; kilit testi bitiş zamanını veritabanında geçmişe çeker — from spec 0002, A-1.
 - EF Core sağlayıcının `DbException`'ını `InvalidOperationException` ("transient failure") içine sarar — "DB erişilemez" yakalarken istisna zincirine bakılır — from spec 0002, adım 6.
 - Kimlik çerezleri `Secure` — entegrasyon testlerinde istemci `https://localhost` taban adresiyle açılır (`AuthApp.CreateApiClientAsync`) — from spec 0002, adım 5.
+- Identity `UserManager.AccessFailedAsync`/`UpdateAsync` eşzamanlılık çakışmasını istisna değil `IdentityResult` (`ConcurrencyFailure`) olarak döndürür; sonuç kontrol edilmezse paralel isteklerde kilit sayacı kaybolur — sayaç tek bir atomik `ExecuteUpdateAsync` ile artırılır (`AccountSignIn`) — from spec 0002, review round 1 F-1 (A-3).
 - Windows'tan commit'lenen script çalıştırılabilir bitini kaybeder (`100644`), Linux CI `Permission denied` verir — yeni script'te `git update-index --chmod=+x -- <yol>` ve `git ls-files -s` ile `100755` doğrulanır — from spec 0001, CI (A-6).
 
 ## Database migrations

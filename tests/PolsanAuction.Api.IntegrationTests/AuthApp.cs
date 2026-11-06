@@ -100,9 +100,10 @@ public sealed partial class AuthApp(string connectionString, IReadOnlyDictionary
         builder.UseSetting("ConnectionStrings:Default", connectionString);
         builder.UseSetting("Database:MigrateOnStartup", "true");
 
-        // Every request in a test comes from the same source, so sign-up uses a high limit unless a test
+        // Every request in a test comes from the same source, so sign-up and sign-in use high limits unless a test
         // sets the real one (plan 0002, risk 4); no test account matches the configured initial admin.
         builder.UseSetting("Identity:RegisterAttemptsPerHour", "1000");
+        builder.UseSetting("Identity:LoginAttemptsPerMinute", "1000");
         builder.UseSetting("Identity:InitialAdminEmail", string.Empty);
         foreach (var (key, value) in settings ?? new Dictionary<string, string>())
         {
