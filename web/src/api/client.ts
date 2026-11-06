@@ -31,6 +31,26 @@ export async function api<T = undefined>(
   path: string,
   options: { method?: 'GET' | 'POST'; body?: unknown } = {},
 ): Promise<ApiResult<T>> {
+  const first = await send<T>(path, options)
+  if (first.ok) {
+    return first
+  }
+  if (first.problem.status === 401) {
+    // The session is gone (idle limit, sign-out in another tab): the cached token belonged to it.
+    resetAntiforgeryToken()
+  }
+  // A token of a session that has ended (or of another tab's sign-in) is rejected: fetch a fresh one, retry once.
+  if (first.problem.code === 'csrf.invalid') {
+    resetAntiforgeryToken()
+    return send<T>(path, options)
+  }
+  return first
+}
+
+async function send<T>(
+  path: string,
+  options: { method?: 'GET' | 'POST'; body?: unknown },
+): Promise<ApiResult<T>> {
   const method = options.method ?? 'GET'
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (method !== 'GET') {

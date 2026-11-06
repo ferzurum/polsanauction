@@ -4,7 +4,11 @@ import { vi } from 'vitest'
 import App from '../App.tsx'
 import { resetAntiforgeryToken } from '../api/client.ts'
 
-type Handler = (request: { method: string; body: unknown }) => Response | Promise<Response>
+type Handler = (request: {
+  method: string
+  body: unknown
+  headers: Record<string, string>
+}) => Response | Promise<Response>
 
 export const problem = (status: number, code: string, extra: Record<string, unknown> = {}) =>
   Response.json({ status, code, ...extra }, { status })
@@ -32,10 +36,11 @@ export function stubApi(routes: Record<string, Handler | Response> = {}) {
     const method = init.method ?? 'GET'
     const path = input.split('?')[0]
     const body: unknown = typeof init.body === 'string' ? JSON.parse(init.body) : undefined
-    calls.push({ method, path, body, headers: (init.headers ?? {}) as Record<string, string> })
+    const headers = (init.headers ?? {}) as Record<string, string>
+    calls.push({ method, path, body, headers })
     const route = routes[`${method} ${path}`]
     if (route !== undefined) {
-      return typeof route === 'function' ? route({ method, body }) : route.clone()
+      return typeof route === 'function' ? route({ method, body, headers }) : route.clone()
     }
     if (path === '/api/auth/antiforgery') {
       return Response.json({ token: 'csrf-token' })
