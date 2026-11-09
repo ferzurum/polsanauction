@@ -4,10 +4,10 @@ import { login } from '../api/auth.ts'
 import { useAuth } from '../auth/context.ts'
 import { ResendConfirmation } from '../components/ResendConfirmation.tsx'
 import { TextField } from '../components/TextField.tsx'
-import { lockedMessage, messages } from '../messages.ts'
+import { isRateLimited, lockedMessage, messages } from '../messages.ts'
 
 type State =
-  | { kind: 'idle' | 'submitting' | 'invalid' | 'unconfirmed' | 'error' }
+  | { kind: 'idle' | 'submitting' | 'invalid' | 'unconfirmed' | 'limited' | 'error' }
   | { kind: 'locked'; until?: string }
 
 /** Sign-in (spec 0002, R-5, R-6, AC-6, AC-7). */
@@ -39,7 +39,7 @@ export function LoginPage() {
           setState({ kind: 'locked', until: result.problem.lockedUntil })
           break
         default:
-          setState({ kind: 'error' })
+          setState({ kind: isRateLimited(result.problem) ? 'limited' : 'error' })
       }
     } catch {
       setState({ kind: 'error' })
@@ -69,6 +69,7 @@ export function LoginPage() {
         </button>
         {state.kind === 'invalid' && <p role="alert">{messages.invalidCredentials}</p>}
         {state.kind === 'locked' && <p role="alert">{lockedMessage(state.until)}</p>}
+        {state.kind === 'limited' && <p role="alert">{messages.tooManyAttempts}</p>}
         {state.kind === 'error' && <p role="alert">{messages.serverError}</p>}
       </form>
       {state.kind === 'unconfirmed' && (

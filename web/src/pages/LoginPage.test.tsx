@@ -72,6 +72,15 @@ describe('LoginPage', () => {
     )
   })
 
+  it('shows the too-many-attempts message when sign-ins from this source are limited', async () => {
+    stubApi({ 'POST /api/auth/login': problem(429, 'rate_limited') })
+    renderAt('/giris')
+    signIn()
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Çok fazla deneme, lütfen sonra tekrar deneyin.',
+    )
+  })
+
   it('shows a server error', async () => {
     stubApi({ 'POST /api/auth/login': problem(500, 'error') })
     renderAt('/giris')
