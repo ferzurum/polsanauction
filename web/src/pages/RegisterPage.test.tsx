@@ -97,7 +97,8 @@ describe('RegisterPage', () => {
     )
   })
 
-  it('can be completed with the keyboard: Enter in a field submits', async () => {
+  // Enter, Tab order and focus are observed by hand, not here (plan 0002, A-2 d; VERIFY F-5).
+  it('submits through the form submit event, not only the button click', async () => {
     stubApi({ 'POST /api/auth/register': new Response(null, { status: 202 }) })
     renderAt('/kayit')
     fireEvent.change(screen.getByLabelText('Ad'), { target: { value: 'Ayşe' } })
