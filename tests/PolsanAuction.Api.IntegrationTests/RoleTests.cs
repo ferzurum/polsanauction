@@ -112,7 +112,8 @@ public sealed class RoleTests(PostgresFixture postgres)
         }
 
         var withinInterval = (await AdminAreaAsync(client)).StatusCode;
-        app.Clock.Advance(IdentityModule.SecurityStampValidationInterval + TimeSpan.FromSeconds(1));
+        // The documented bound (docs/security.md: at most 1 minute), not the production constant (VERIFY F-3).
+        app.Clock.Advance(TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(1));
 
         Assert.Equal(HttpStatusCode.Forbidden, withinInterval); // the cookie still carries the old roles
         Assert.Equal(HttpStatusCode.OK, (await AdminAreaAsync(client)).StatusCode);
