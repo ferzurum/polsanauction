@@ -9,7 +9,8 @@ public sealed class LayerDependencyTests
     private static readonly string[] InfrastructureNamespaces =
     [
         "Microsoft.EntityFrameworkCore",
-        "Microsoft.AspNetCore",
+        "Microsoft.AspNetCore", // includes Microsoft.AspNetCore.Identity (UserManager, IdentityUser)
+        "Microsoft.Extensions.Identity",
         "Npgsql",
         "System.Net.Mail",
         "MailKit",

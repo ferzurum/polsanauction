@@ -33,5 +33,6 @@
     <Project Path="tests/PolsanAuction.Api.IntegrationTests/PolsanAuction.Api.IntegrationTests.csproj" />
     <Project Path="tests/PolsanAuction.Api.UnitTests/PolsanAuction.Api.UnitTests.csproj" />
     <Project Path="tests/PolsanAuction.ArchitectureTests/PolsanAuction.ArchitectureTests.csproj" />
+    <Project Path="tests/PolsanAuction.Identity.UnitTests/PolsanAuction.Identity.UnitTests.csproj" />
   </Folder>
 </Solution>

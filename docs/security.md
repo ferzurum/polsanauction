@@ -35,7 +35,32 @@
 - **Roller** uygulama içinde tutulur (`Admin`, `Bidder`). İlk Admin yapılandırmadan seed edilir;
   sonrakileri Admin atar. AD grubu varsa ek bir kaynaktır.
 - Yetki kontrolü **sunucuda, her uç noktada ve SignalR hub metodunda** yapılır; UI'da gizleme yetki değildir.
-- Çerezler `HttpOnly`, `Secure`, `SameSite=Lax/Strict`; CSRF koruması (antiforgery) açık; yalnızca HTTPS.
+- **Oturum (spec 0002, ADR 0001):** ASP.NET Core Identity + `polsan.auth` çerezi — `HttpOnly`, `Secure`,
+  `SameSite=Strict`, 8 saat hareketsizlikte biter (kayan), "beni hatırla" yok. API yönlendirme yapmaz:
+  oturumsuz → 401, yetkisiz → 403.
+- **Oturum geçersizleştirme:** çerez dakikada bir hesabın güvenlik damgasına karşı doğrulanır.
+  - Çıkış damgayı yeniler: kopyalanmış bir çerez en geç 1 dakikada geçersiz olur ve hesabın **tüm** cihaz ve
+    tarayıcılardaki oturumları da biter (bilinçli kabul — review 0002 round 2, F-2).
+  - Rol değişikliği damgayı yenilemez: oturum açık kalır, yeni rol en geç 1 dakikada oturuma yansır
+    (doğrulama oturumun kimlik bilgilerini veritabanından yeniden üretir; `RoleTests.RoleGrantedDuringASession_…`).
+  - Oturumu hemen bitirmesi gereken işlemler (pasifleştirme, rol geri alma — spec 0003/0005) damgayı açıkça yeniler.
+- **CSRF:** her `POST` `X-XSRF-TOKEN` başlığında antiforgery token'ı taşır (`GET /api/auth/antiforgery`);
+  token kullanıcıya bağlıdır, istemci giriş/çıkıştan sonra yeniler. Eksik/yanlış → 400 `csrf.invalid`.
+- **Anonim auth uç noktaları:** `GET /api/auth/antiforgery`, `POST /api/auth/register | confirm-email |
+  resend-confirmation | login`. `logout`, `me` ve `/api/admin` oturum ister; `/api/admin` `Admin` rolü ister.
+- **Hesap tespitini önleme:** kayıt (yeni/var olan adres), yeniden gönderim (bilinmeyen/doğrulanmış adres) ve
+  giriş (yanlış parola/bilinmeyen e-posta) aynı yanıtı verir; "doğrulanmamış" yalnızca parola doğruysa söylenir.
+- **Kilit ve sınırlar:** 5 hatalı giriş → 15 dk kilit (sayaç tek bir atomik `UPDATE` ile artar, paralel
+  isteklerde de); giriş kaynak başına dakikada 30; kayıt kaynak başına saatte 10; doğrulama yeniden
+  gönderimi adres başına dakikada 1 (adres kayıtlı olmasa da) ve kaynak başına dakikada 10 → 429 `rate_limited`.
+- **Kabul edilen riskler (spec 0002, review round 1 F-14):** 5 hatalı denemeden sonra "kilitli" yanıtı yalnızca
+  kayıtlı adreslerde gelir (R-6 kilidi göstermeyi ister, R-5 hesap tespitini yasaklar — R-6 öncelikli); aynı
+  nedenle herkes bir başkasının hesabını 15 dakika kilitleyebilir. Kurum içi ağ ve giriş hız sınırı bu riskleri
+  sınırlar; AD girişi (spec 0007) parola denemesini ortadan kaldırır.
+- **Doğrulama bağlantısı:** Data Protection ile şifreli/imzalı, 24 saat, tek kullanımlık (`ConfirmationTokenCodec`).
+- **Açık (dağıtım spec'i):** Data Protection anahtarlarının kalıcı saklanması; ters proxy arkasında gerçek
+  istemci IP'si için `ForwardedHeaders`.
+- Yalnızca HTTPS.
 - Erişim yalnızca intranet / VPN; uygulama internete açılmaz.
 
 ## Personal data (KVKK)

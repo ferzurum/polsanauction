@@ -18,14 +18,19 @@ Proje kuralları `AGENTS.md`'de. Gerekenler: .NET SDK 10.0.403+ (`global.json`),
 Docker Desktop (geliştirme veritabanı ve `./scripts/check` full profilindeki entegrasyon testleri).
 
 1. Geliştirme veritabanı: `.env.example` dosyasını `.env` olarak kopyalayın, `POSTGRES_PASSWORD`
-   değerini değiştirin, sonra `docker compose up -d`.
+   değerini değiştirin, sonra `docker compose up -d --wait` (veritabanı bağlantı kabul edene kadar bekler).
 2. API bağlantı dizesi (sır, repoya girmez):
    `dotnet user-secrets set ConnectionStrings:Default "Host=127.0.0.1;Port=5432;Database=polsan_auction;Username=polsan;Password=<.env'deki parola>" --project src/Api/PolsanAuction.Api`
 3. API: `dotnet run --project src/Api/PolsanAuction.Api` → http://localhost:5080/api/health
+   (ilk açılışta veritabanı şeması otomatik kurulur — `launchSettings`'teki `Database__MigrateOnStartup`).
 4. Web: `npm --prefix web ci` ardından `npm --prefix web run dev` → Vite'ın yazdığı adres
    (ör. http://localhost:5173). Ana sayfa "Sistem çalışıyor." göstermelidir; `/api` istekleri
    5080'e yönlendirilir.
-5. Doğrulama: `./scripts/check` (full, Docker gerekir) · `./scripts/check --fast` (iç döngü).
+5. Kayıt ve giriş (spec 0002): geliştirmede e-posta gönderilmez — doğrulama bağlantısı **API'nin
+   konsoluna** yazılır ("E-POSTA (geliştirme — gönderilmedi)"); bağlantıyı tarayıcıda açın. Yalnızca
+   `appsettings.json` → `Identity:InitialAllowedDomains` alanlarıyla kayıt olunur; `Identity:InitialAdminEmail`
+   adresini doğrulayan kişi Admin olur. Oturum çerezi `Secure`'dır; tarayıcılar `localhost` için buna izin verir.
+6. Doğrulama: `./scripts/check` (full, Docker gerekir) · `./scripts/check --fast` (iç döngü).
 
 ## Why this exists
 

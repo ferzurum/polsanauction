@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Modules\Identity\PolsanAuction.Identity.Domain\PolsanAuction.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\PolsanAuction.Identity.Infrastructure\PolsanAuction.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

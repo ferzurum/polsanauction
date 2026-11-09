@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\PolsanAuction.Identity.Domain\PolsanAuction.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\Notification\PolsanAuction.Notification.Application\PolsanAuction.Notification.Application.csproj" />
   </ItemGroup>
 </Project>

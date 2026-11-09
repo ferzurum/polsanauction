@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 namespace PolsanAuction.Api.IntegrationTests;
 
 [Trait("Category", "Integration")]
-public sealed class HealthEndpointTests(PostgresFixture postgres) : IClassFixture<PostgresFixture>
+[Collection(PostgresTestGroup.Name)]
+public sealed class HealthEndpointTests(PostgresFixture postgres)
 {
     [Fact]
     public async Task Health_DatabaseReachable_ReturnsHealthy()

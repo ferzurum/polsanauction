@@ -57,3 +57,7 @@ dotnet_naming_style.async_suffix.capitalization = pascal_case
 # xUnit test names follow <Behavior>_<Condition>_<Expected> (docs/conventions.md); test methods need not end with Async.
 dotnet_naming_rule.async_methods_suffix.severity = none
 dotnet_diagnostic.CA1707.severity = none
+
+[**/Migrations/*.cs]
+# EF Core output (dotnet ef migrations add): regenerated, never hand-edited, so style analyzers skip it.
+generated_code = true

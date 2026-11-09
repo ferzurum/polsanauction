@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Api\PolsanAuction.Api\PolsanAuction.Api.csproj" />
