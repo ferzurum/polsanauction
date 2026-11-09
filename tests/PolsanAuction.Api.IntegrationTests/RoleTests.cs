@@ -78,6 +78,30 @@ public sealed class RoleTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task InitialAdminAddress_RegisteredButNotConfirmed_IsNotAdminAfterARestart_AC9()
+    {
+        var adminEmail = AuthApp.NewEmail("admin");
+        await using (var before = new AuthApp(postgres.ConnectionString))
+        {
+            using var client = await before.CreateApiClientAsync();
+            using var registered = await AuthApp.RegisterAsync(client, adminEmail);
+            Assert.Equal(HttpStatusCode.Accepted, registered.StatusCode);
+        }
+
+        // The startup check finds the account this time (VERIFY F-2).
+        await using var after = new AuthApp(postgres.ConnectionString, AdminIs(adminEmail));
+        using var _ = await after.CreateApiClientAsync();
+
+        var isAdmin = await after.WithDbAsync(async db =>
+        {
+            var user = db.Users.Single(u => u.Email == adminEmail);
+            var adminRole = db.Roles.Single(r => r.Name == "Admin");
+            return await Task.FromResult(db.UserRoles.Any(ur => ur.UserId == user.Id && ur.RoleId == adminRole.Id));
+        });
+        Assert.False(isAdmin);
+    }
+
+    [Fact]
     public async Task InitialAdminAddress_AlreadyConfirmedBeforeTheSetting_BecomesAdminAtStartup_AC9()
     {
         var adminEmail = AuthApp.NewEmail("admin");
