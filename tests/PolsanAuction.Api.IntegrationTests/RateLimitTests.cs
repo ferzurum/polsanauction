@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace PolsanAuction.Api.IntegrationTests;
 
@@ -54,7 +55,14 @@ public sealed class RateLimitTests(PostgresFixture postgres)
     [Fact]
     public async Task Register_EleventhAttemptWithinAnHour_IsLimited_AC6()
     {
-        await using var app = new AuthApp(postgres.ConnectionString, new Dictionary<string, string> { ["Identity:RegisterAttemptsPerHour"] = "10" });
+        // The shipped value, not one the test picks (VERIFY F-1); the spec's number is pinned here.
+        var shipped = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"))
+            .Build()
+            .GetValue<int>("Identity:RegisterAttemptsPerHour");
+        Assert.Equal(10, shipped);
+
+        await using var app = new AuthApp(postgres.ConnectionString, new Dictionary<string, string> { ["Identity:RegisterAttemptsPerHour"] = $"{shipped}" });
         using var client = await app.CreateApiClientAsync();
 
         for (var attempt = 1; attempt <= 10; attempt++)
